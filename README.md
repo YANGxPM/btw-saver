@@ -1,5 +1,5 @@
 # btw-saver
-
+[🔗查看中文版](README_zh.md)
 > A Claude Code plugin that solves the disappearing `/btw` answer problem.
 
 ---
