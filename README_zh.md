@@ -1,4 +1,5 @@
 # btw-saver
+[🔗English Version](README.md)
 
 > 一个 Claude Code 插件，解决 `/btw` 回答消失后无法找回的问题。
 

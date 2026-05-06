@@ -1,4 +1,5 @@
 # UX Improvement Proposal: /btw Answer Persistence in Claude Code
+[🔗查看中文版](UX Proposal_zh.md)
 
 **Author:** Sheng  
 **Date:** 2026-05  
