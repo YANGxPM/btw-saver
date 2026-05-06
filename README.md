@@ -120,8 +120,12 @@ btw-saver/
 ├── scripts/
 │   └── btw-nudge.js         # Hook implementation (Node.js)
 ├── design/
-│   └── ux-proposal.md       # UX improvement proposal for Anthropic
-└── README.md
+│   ├── case-study.md        # Case Study
+│   ├── case-study-zh.md     # 案例研究
+│   ├── ux-proposal.md       # UX Proposal
+│   └── ux-proposal-zh.md    # UX改进提案
+├── README.md
+└── README_zh.md
 ```
 
 ---
