@@ -146,5 +146,7 @@ Claude Code 的 `/btw` 命令允许开发者在不污染主对话上下文的情
 ## 相关链接
 
 - [GitHub 仓库](https://github.com/your-username/btw-saver)
-- [UX 改进提案（中文）](./ux-proposal-zh.md)
-- [UX 改进提案（英文）](./ux-proposal.md)
+- [UX改进提案](./UX-Proposal_zh.md)
+- [UX Improvement Proposal](./UX-Proposal.md)
+- [案例研究](./Case-Study_zh.md)
+- [Case Study](./Case-Study.md)

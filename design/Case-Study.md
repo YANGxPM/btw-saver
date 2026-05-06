@@ -145,5 +145,8 @@ This project started as a personal frustration and became a product case study i
 
 ## Links
 
-- [GitHub Repository](https://github.com/your-username/btw-saver)
-- [UX Improvement Proposal](./ux-proposal.md)
+- [GitHub 仓库](https://github.com/your-username/btw-saver)
+- [UX改进提案](./UX-Proposal_zh.md)
+- [UX Improvement Proposal](./UX-Proposal.md)
+- [案例研究](./Case-Study_zh.md)
+- [Case Study](./Case-Study.md)
