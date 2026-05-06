@@ -1,5 +1,5 @@
 # UX 改进提案：Claude Code 中 /btw 回答的持久化问题
-[🔗English Version](UX Proposal.md)
+[🔗English Version](UX-Proposal.md)
 
 **作者：** Sheng  
 **日期：** 2026-05  
