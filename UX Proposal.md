@@ -3,7 +3,7 @@
 **Author:** Sheng  
 **Date:** 2026-05  
 **Type:** UX Improvement Proposal + Working Plugin Implementation  
-**Audience:** Anthropic Claude Code Design Team
+**Audience:** Claude Code Users
 
 ---
 
