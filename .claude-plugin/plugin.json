@@ -1,0 +1,13 @@
+{
+  "name": "btw",
+  "description": "Saves /btw side question answers that would otherwise disappear when dismissed. Use /btw:save <question> to re-answer and archive to .btw-log/btw-log.md.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Sheng",
+    "url": "https://github.com/your-username/btw-saver"
+  },
+  "homepage": "https://github.com/your-username/btw-saver",
+  "repository": "https://github.com/your-username/btw-saver",
+  "license": "MIT",
+  "keywords": ["btw", "side-question", "productivity", "ux", "history"]
+}
