@@ -102,7 +102,7 @@ sed -i '' 's|PLUGIN_ABSOLUTE_PATH|'"$HOME"'/.claude/plugins/btw-saver|g' \
 
 理想的解决方案是在 **`/btw` 浮层内直接加一个保存按钮**——在用户看到回答的那一刻，一键保存，在关闭之前完成。这个插件是在该功能进入 Claude Code 核心之前的最优替代方案。
 
-完整的 UX 分析和向 Anthropic 设计团队的改进提案，见 [`design/ux-proposal-zh.md`](./design/ux-proposal-zh.md)。
+完整的 UX 分析和向 Anthropic 设计团队的改进提案，见 [`design/UX-Proposal_zh.md`](./design/UX-Proposal_zh.md)。
 
 ---
 

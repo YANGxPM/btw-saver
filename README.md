@@ -102,7 +102,7 @@ Run `/reload-plugins` inside Claude Code, then try:
 
 The ideal fix is a **Save button inside the `/btw` overlay itself** — one keystroke at the moment of peak relevance, before dismissal. This plugin is the best-effort workaround while that change isn't in Claude Code core.
 
-See [`design/ux-proposal.md`](./design/ux-proposal.md) for the full UX analysis and proposal addressed to the Anthropic design team.
+See [`design/UX-Proposal.md`](./design/UX-Proposal.md) for the full UX analysis and proposal addressed to the Anthropic design team.
 
 ---
 
