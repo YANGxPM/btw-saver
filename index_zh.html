@@ -1,946 +1,1280 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>btw-saver · 案例研究 by Sheng</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg:      #111111;
-    --bg2:     #191919;
-    --bg3:     #222222;
-    --border:  #2a2a2a;
-    --dim:     #555555;
-    --dim2:    #888888;
-    --text:    #e8e8e8;
-    --orange:  #D77757;
-    --orange2: #e8956e;
-    --green:   #4eba65;
-    --red:     #ff6b80;
-    --blue:    #7eb8f7;
-    --mono:    'DM Mono', monospace;
-    --sans:    'Noto Sans SC', sans-serif;
-    --serif:   'Noto Serif SC', serif;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.8;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-    opacity: 0.025;
-    pointer-events: none;
-    z-index: 100;
-  }
-
-  .container {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 0 32px;
-  }
-
-  section { padding: 96px 0; border-bottom: 1px solid var(--border); }
-  section:last-of-type { border-bottom: none; }
-
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 50;
-    padding: 0 32px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(17,17,17,0.88);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav-logo {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--orange);
-    letter-spacing: 0.02em;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 28px;
-    list-style: none;
-  }
-
-  .nav-links a {
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--dim2);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--text); }
-
-  /* HERO */
-  #hero {
-    padding-top: 160px;
-    padding-bottom: 96px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--orange);
-    letter-spacing: 0.1em;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .hero-eyebrow::before {
-    content: '';
-    display: inline-block;
-    width: 24px;
-    height: 1px;
-    background: var(--orange);
-  }
-
-  h1 {
-    font-family: var(--serif);
-    font-size: clamp(32px, 5.5vw, 52px);
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: 0.02em;
-    color: var(--text);
-    margin-bottom: 24px;
-  }
-
-  h1 em {
-    font-style: italic;
-    color: var(--orange2);
-  }
-
-  .hero-sub {
-    font-size: 16px;
-    color: var(--dim2);
-    max-width: 520px;
-    line-height: 1.85;
-    margin-bottom: 40px;
-    font-weight: 300;
-  }
-
-  .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    padding-top: 32px;
-    border-top: 1px solid var(--border);
-  }
-
-  .meta-item { display: flex; flex-direction: column; gap: 4px; }
-
-  .meta-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .meta-value { font-size: 13px; color: var(--dim2); }
-
-  /* SECTION HEADERS */
-  .section-num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--dim);
-    letter-spacing: 0.1em;
-    margin-bottom: 12px;
-  }
-
-  h2 {
-    font-family: var(--serif);
-    font-size: clamp(22px, 3.5vw, 30px);
-    font-weight: 600;
-    line-height: 1.4;
-    color: var(--text);
-    margin-bottom: 32px;
-    letter-spacing: 0.03em;
-  }
-
-  h3 {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--dim2);
-    letter-spacing: 0.08em;
-    margin-bottom: 16px;
-    margin-top: 40px;
-  }
-
-  h3:first-child { margin-top: 0; }
-
-  p {
-    color: var(--dim2);
-    margin-bottom: 20px;
-    font-size: 15px;
-    line-height: 1.9;
-    font-weight: 300;
-  }
-
-  p:last-child { margin-bottom: 0; }
-  strong { color: var(--text); font-weight: 500; }
-
-  code {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--orange2);
-    background: var(--bg2);
-    padding: 2px 7px;
-    border-radius: 3px;
-  }
-
-  /* TERMINAL */
-  .terminal {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 32px 0;
-    font-family: var(--mono);
-    font-size: 13px;
-  }
-
-  .terminal-bar {
-    background: var(--bg3);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dot-r { background: #ff5f56; }
-  .dot-y { background: #ffbd2e; }
-  .dot-g { background: #27c93f; }
-
-  .terminal-label {
-    font-size: 11px;
-    color: var(--dim);
-    margin-left: 8px;
-    letter-spacing: 0.04em;
-  }
-
-  .terminal-body { padding: 20px; line-height: 1.9; }
-
-  .t-dim   { color: var(--dim); }
-  .t-dim2  { color: var(--dim2); }
-  .t-white { color: var(--text); }
-  .t-orange{ color: var(--orange2); }
-  .t-green { color: var(--green); }
-  .t-red   { color: var(--red); }
-
-  /* JOURNEY */
-  .journey { display: flex; flex-direction: column; margin: 32px 0; }
-
-  .journey-step {
-    display: flex;
-    gap: 20px;
-    padding: 20px 0;
-    position: relative;
-  }
-
-  .journey-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 52px;
-    bottom: -20px;
-    width: 1px;
-    background: var(--border);
-  }
-
-  .journey-icon {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--dim2);
-    position: relative;
-    z-index: 1;
-  }
-
-  .journey-step.bad .journey-icon { border-color: var(--red); color: var(--red); }
-  .journey-content { padding-top: 8px; }
-  .journey-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .journey-desc { font-size: 13.5px; color: var(--dim2); line-height: 1.7; margin: 0; font-weight: 300; }
-  .journey-step.bad .journey-title { color: var(--red); }
-
-  /* TAG */
-  .tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 3px;
-    border: 1px solid;
-    letter-spacing: 0.04em;
-    margin-right: 8px;
-    margin-bottom: 8px;
-  }
-
-  .tag-orange { color: var(--orange); border-color: rgba(215,119,87,0.35); background: rgba(215,119,87,0.07); }
-  .tag-green  { color: var(--green);  border-color: rgba(78,186,101,0.35); background: rgba(78,186,101,0.07); }
-  .tag-red    { color: var(--red);    border-color: rgba(255,107,128,0.35); background: rgba(255,107,128,0.07); }
-
-  /* CALLOUT */
-  .callout {
-    border-left: 2px solid var(--orange);
-    padding: 20px 24px;
-    background: rgba(215,119,87,0.05);
-    border-radius: 0 6px 6px 0;
-    margin: 32px 0;
-  }
-
-  .callout p {
-    font-family: var(--serif);
-    font-size: 18px;
-    font-style: italic;
-    color: var(--text);
-    line-height: 1.7;
-    margin: 0;
-    letter-spacing: 0.04em;
-  }
-
-  /* COMPARE TABLE */
-  .compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 32px 0;
-    font-size: 13.5px;
-  }
-
-  .compare-table th {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    color: var(--dim2);
-    background: var(--bg2);
-  }
-
-  .compare-table th:nth-child(2) { color: var(--green); }
-  .compare-table th:nth-child(3) { color: var(--orange); }
-
-  .compare-table td {
-    padding: 13px 16px;
-    border-bottom: 1px solid var(--border);
-    color: var(--dim2);
-    vertical-align: top;
-    font-size: 13px;
-  }
-
-  .compare-table td:first-child { color: var(--dim); font-family: var(--mono); font-size: 12px; }
-  .compare-table tr:last-child td { border-bottom: none; }
-  .compare-table tr:hover td { background: var(--bg2); }
-
-  .good  { color: var(--green)  !important; }
-  .bad   { color: var(--dim)    !important; }
-  .mixed { color: var(--orange2)!important; }
-
-  /* MOCKUP GRID */
-  .mockup-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin: 32px 0;
-  }
-
-  .mockup-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .mockup-card-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--dim2);
-  }
-
-  .badge {
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 2px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .badge-before { background: rgba(255,107,128,0.15); color: var(--red); }
-  .badge-after  { background: rgba(78,186,101,0.15);  color: var(--green); }
-
-  .mockup-body {
-    padding: 16px;
-    font-family: var(--mono);
-    font-size: 11.5px;
-    line-height: 1.7;
-  }
-
-  .overlay-box {
-    background: #1e1e1e;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-
-  .overlay-header {
-    background: #161616;
-    padding: 6px 10px;
-    font-size: 11px;
-    color: var(--orange);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .overlay-content {
-    padding: 10px;
-    color: var(--text);
-    font-size: 11px;
-    line-height: 1.65;
-  }
-
-  .overlay-footer {
-    background: #161616;
-    padding: 7px 10px;
-    border-top: 1px solid var(--border);
-    font-size: 10.5px;
-    color: var(--dim);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .save-btn {
-    background: rgba(78,186,101,0.12);
-    border: 1px solid rgba(78,186,101,0.4);
-    color: var(--green);
-    padding: 3px 9px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-family: var(--mono);
-  }
-
-  /* REFLECTION */
-  .reflection-grid { display: grid; gap: 16px; margin: 32px 0; }
-
-  .reflection-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 20px 24px;
-    display: grid;
-    grid-template-columns: 40px 1fr;
-    gap: 16px;
-    align-items: start;
-  }
-
-  .reflection-num {
-    font-family: var(--mono);
-    font-size: 22px;
-    color: var(--border);
-    line-height: 1;
-    padding-top: 2px;
-  }
-
-  .reflection-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-  .reflection-desc  { font-size: 13.5px; color: var(--dim2); line-height: 1.75; margin: 0; font-weight: 300; }
-
-  /* DEMONSTRATES */
-  .demonstrates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 32px 0;
-  }
-
-  .demo-item {
-    padding: 16px 18px 16px 36px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 13.5px;
-    color: var(--dim2);
-    line-height: 1.65;
-    position: relative;
-    font-weight: 300;
-  }
-
-  .demo-item::before {
-    content: '◆';
-    position: absolute;
-    left: 14px;
-    top: 16px;
-    font-size: 8px;
-    color: var(--orange);
-  }
-
-  /* LINKS */
-  .links-row {
-    display: flex;
-    gap: 16px;
-    margin-top: 40px;
-    flex-wrap: wrap;
-  }
-
-  .link-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-family: var(--mono);
-    font-size: 12px;
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    transition: all 0.2s;
-  }
-
-  .link-btn-primary { background: var(--orange); color: #111; font-weight: 500; }
-  .link-btn-primary:hover { background: var(--orange2); }
-  .link-btn-secondary { background: var(--bg2); border: 1px solid var(--border); color: var(--dim2); }
-  .link-btn-secondary:hover { border-color: var(--dim2); color: var(--text); }
-
-  /* FOOTER */
-  footer { padding: 48px 0; border-top: 1px solid var(--border); }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .footer-left, .footer-right {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--dim);
-  }
-
-  /* REVEAL */
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-
-  /* RESPONSIVE */
-  @media (max-width: 600px) {
-    .mockup-grid, .demonstrates { grid-template-columns: 1fr; }
-    .container { padding: 0 20px; }
-    nav { padding: 0 20px; }
-    .nav-links { display: none; }
-  }
-</style>
-</head>
-<body>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">◆ btw-saver</div>
-  <ul class="nav-links">
-    <li><a href="#problem">问题</a></li>
-    <li><a href="#process">过程</a></li>
-    <li><a href="#solution">方案</a></li>
-    <li><a href="#reflection">反思</a></li>
-    <li><a href="#links">链接</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section id="hero">
-  <div class="container">
-    <div class="hero-eyebrow">UX 案例研究 · Claude Code · 2026</div>
-    <h1>修复 /btw 中<em>不可见</em>的状态边界</h1>
-    <p class="hero-sub">
-      Claude Code 的 /btw 命令会创建临时侧边对话。关闭浮层后，回答永久消失——没有警告，没有恢复路径。我识别了这个设计缺陷，向 Anthropic 提交了核心修复提案，并以插件形式完成了一个可运行的替代方案。
-    </p>
-    <div class="meta-row">
-      <div class="meta-item">
-        <span class="meta-label">角色</span>
-        <span class="meta-value">UX 设计师 · AI PM</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">类型</span>
-        <span class="meta-value">个人项目 · 研究 + 设计 + 开发</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">时间</span>
-        <span class="meta-value">2026-05</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">交付物</span>
-        <span class="meta-value">UX 提案 · 插件 · GitHub</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROBLEM -->
-<section id="problem">
-  <div class="container">
-    <div class="section-num reveal">01 — 问题</div>
-    <h2 class="reveal">回答消失了。<br>没有警告，没有恢复。</h2>
-
-    <p class="reveal">
-      这个问题是我在使用 Claude Code 时亲身遇到的。我用 <code>/btw</code> 提了一个问题，得到了有用的回答，按下 Escape——回答就消失了。我的第一反应是：<strong>这是 bug 吗？</strong>
-    </p>
-
-    <p class="reveal">
-      在调查架构之后，我确认这是刻意的设计。但<strong>无论设计意图如何，这个时刻的用户体验是断裂的。</strong>
-    </p>
-
-    <div class="terminal reveal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span>
-        <span class="dot dot-y"></span>
-        <span class="dot dot-g"></span>
-        <span class="terminal-label">Claude Code — 用户旅程还原</span>
-      </div>
-      <div class="terminal-body">
-        <div><span class="t-dim">用户  </span><span class="t-orange">/btw</span><span class="t-dim2"> 你喜欢多模型方案吗？比如 deepseek + claude？</span></div>
-        <div style="margin-top:8px"><span class="t-dim">claude</span><span class="t-white"> 多模型方案在架构上是合理的。DeepSeek 在成本效益</span></div>
-        <div><span class="t-dim">      </span><span class="t-white"> 上表现突出；Claude 在安全性和指令遵循上有优势…</span></div>
-        <div style="margin-top:8px"><span class="t-dim">用户  </span><span class="t-dim2"> [按下 Escape]</span></div>
-        <div style="margin-top:4px"><span class="t-dim">      </span><span class="t-red">回答永久消失——没有任何提示。</span></div>
-      </div>
-    </div>
-
-    <p class="reveal">
-      根本原因：<strong>浮层的外观和交互感与普通 Claude 回答完全一致。</strong>没有任何视觉线索区分"临时内容"与"持久内容"。这直接对应 <strong>Nielsen 可用性启发式第一条——系统状态的可见性。</strong>
-    </p>
-
-    <h3 class="reveal">受影响的用户群体</h3>
-
-    <div class="journey reveal">
-      <div class="journey-step">
-        <div class="journey-icon">①</div>
-        <div class="journey-content">
-          <div class="journey-title">Claude Code 新用户</div>
-          <p class="journey-desc">尚未理解 /btw 的临时性本质。每一条回答看起来都一样——没有"这条会消失"的心智模型。</p>
-        </div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-icon">②</div>
-        <div class="journey-content">
-          <div class="journey-title">深度专注工作中的开发者</div>
-          <p class="journey-desc">在任务进行中用 /btw 提了一个问题，得到有价值的回答，然后上下文切换，忘记保存。高认知负荷的工作状态让这件事很容易发生。</p>
-        </div>
-      </div>
-      <div class="journey-step bad">
-        <div class="journey-icon">③</div>
-        <div class="journey-content">
-          <div class="journey-title">ADHD 倾向用户——受影响最深</div>
-          <p class="journey-desc">/btw 功能发布时，Reddit 社区称其为"送给我们这些有 ADHD 脑子的 Claude Code 用户的礼物"。这群最喜爱 /btw 的人，也最容易在保存前关闭浮层。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROCESS -->
-<section id="process">
-  <div class="container">
-    <div class="section-num reveal">02 — 过程</div>
-    <h2 class="reveal">先梳理约束，<br>再谈设计。</h2>
-
-    <p class="reveal">在寻找解决方案之前，我先梳理了真实的约束——架构、API 和 UX 三个层面。每一个约束都改变了最终方向。</p>
-
-    <h3 class="reveal">三个改变方案的约束</h3>
-
-    <div class="terminal reveal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-        <span class="terminal-label">约束分析</span>
-      </div>
-      <div class="terminal-body">
-        <div><span class="t-orange">架构  </span><span class="t-dim2"> /btw 回答从设计上就不进入对话历史。</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → 任何插件都无法在关闭后捕获原始回答。</span></div>
-        <div style="margin-top:10px"><span class="t-orange">API   </span><span class="t-dim2"> Claude Code Hook 系统没有 /btw 专属生命周期事件。</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → 不存在 onBtwDismiss。最接近的是 UserPromptSubmit。</span></div>
-        <div style="margin-top:10px"><span class="t-orange">UX    </span><span class="t-dim2"> 任何修复方案都不能改变 /btw 的默认行为。</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → 增加默认路径的摩擦 = 比问题本身更糟。</span></div>
-      </div>
-    </div>
-
-    <div class="callout reveal">
-      <p>默认临时，主动持久。</p>
-    </div>
-
-    <h3 class="reveal">关键设计决策：命令命名</h3>
-
-    <p class="reveal">
-      第一版实现使用的命令是 <code>/btw-saver:save-btw</code>——19 个字符，而 <code>/btw</code> 只有 4 个。显然是错的。我评估了两个方向：
-    </p>
-
-    <div style="margin: 24px 0;" class="reveal">
-      <div style="margin-bottom:12px;">
-        <span class="tag tag-green">选择 → 方向 A</span>
-        <code>/btw:save</code>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--dim2);margin-left:12px;">插件名改为 "btw"，带命名空间，9 个字符，可靠</span>
-      </div>
-      <div>
-        <span class="tag tag-red">放弃 → 方向 B</span>
-        <code style="color:var(--dim2)">/save-btw</code>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--dim2);margin-left:12px;">~/.claude/skills/ standalone——未有文档支撑，不可验证</span>
-      </div>
-    </div>
-
-    <p class="reveal">
-      我选择了方向 A。方向 B 依赖一个无法在官方文档中确认的目录约定。<strong>发布一个诚实但稍欠优雅的方案，好过发布一个精美但不可靠的方案。</strong>
-    </p>
-  </div>
-</section>
-
-<!-- SOLUTION -->
-<section id="solution">
-  <div class="container">
-    <div class="section-num reveal">03 — 方案</div>
-    <h2 class="reveal">两个层次。<br>一个今天就能用。</h2>
-
-    <h3 class="reveal">第一层——核心修复提案（建议 Anthropic 实施）</h3>
-
-    <p class="reveal">理想方案是对浮层组件做一个小改动：在底部操作区加入保存按钮。一个快捷键，零改动默认行为。</p>
-
-    <div class="mockup-grid reveal">
-      <div class="mockup-card">
-        <div class="mockup-card-label">
-          <span class="badge badge-before">现状</span>
-          当前 /btw 浮层
-        </div>
-        <div class="mockup-body">
-          <div style="color:var(--dim);font-size:11px;margin-bottom:8px;">> implement the auth middleware</div>
-          <div class="overlay-box">
-            <div class="overlay-header">◆ /btw · side question</div>
-            <div class="overlay-content">
-              <div style="color:var(--dim);margin-bottom:6px;">> 你喜欢多模型方案吗？</div>
-              多模型方案在架构上是合理的。DeepSeek 在成本效益上表现突出；Claude 在安全性上有优势…
-            </div>
-            <div class="overlay-footer">
-              <span>Space / Enter / Esc  to dismiss</span>
-            </div>
-          </div>
-          <div style="margin-top:10px;color:var(--red);font-size:11px;">⚠ 关闭即永久消失，无任何提示</div>
-        </div>
-      </div>
-
-      <div class="mockup-card">
-        <div class="mockup-card-label">
-          <span class="badge badge-after">提案</span>
-          改进后的浮层
-        </div>
-        <div class="mockup-body">
-          <div style="color:var(--dim);font-size:11px;margin-bottom:8px;">> implement the auth middleware</div>
-          <div class="overlay-box">
-            <div class="overlay-header">◆ /btw · side question</div>
-            <div class="overlay-content">
-              <div style="color:var(--dim);margin-bottom:6px;">> 你喜欢多模型方案吗？</div>
-              多模型方案在架构上是合理的。DeepSeek 在成本效益上表现突出；Claude 在安全性上有优势…
-            </div>
-            <div class="overlay-footer">
-              <span>Space / Enter / Esc  to dismiss</span>
-              <span class="save-btn">[S]  保存到日志</span>
-            </div>
-          </div>
-          <div style="margin-top:10px;color:var(--green);font-size:11px;">✓ 一键保存，不打断工作流</div>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="reveal">第二层——可运行插件（已发布）</h3>
-
-    <p class="reveal">由于核心修复需要 Anthropic 介入，我构建了一个 Claude Code 插件作为最优替代方案。</p>
-
-    <div class="terminal reveal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-        <span class="terminal-label">Claude Code — /btw:save 实际运行</span>
-      </div>
-      <div class="terminal-body">
-        <div><span class="t-dim">> </span><span class="t-orange">/btw:save</span><span class="t-dim2"> 你喜欢多模型方案吗？</span></div>
-        <div style="margin-top:8px"><span class="t-dim">  </span><span class="t-white">多模型方案在架构上是合理的。DeepSeek 在成本效益</span></div>
-        <div><span class="t-dim">  </span><span class="t-white">上表现突出；Claude 在安全性上有优势…</span></div>
-        <div style="margin-top:8px"><span class="t-green">  已保存到 .btw-log/btw-log.md</span></div>
-        <div style="margin-top:12px;color:var(--dim);font-size:12px;">  # .btw-log/btw-log.md</div>
-        <div style="color:var(--dim);font-size:12px;">  ---</div>
-        <div style="color:var(--orange2);font-size:12px;">  ## [2026-05-05 14:32]  你喜欢多模型方案吗？</div>
-        <div style="color:var(--dim2);font-size:12px;">  多模型方案在架构上是合理的…</div>
-      </div>
-    </div>
-
-    <h3 class="reveal">方案权衡</h3>
-
-    <table class="compare-table reveal">
-      <thead>
-        <tr>
-          <th></th>
-          <th>理想方案（保存按钮）</th>
-          <th>本插件</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>触发时机</td>
-          <td class="good">关闭前，一键完成</td>
-          <td class="mixed">关闭后，运行 /btw:save</td>
-        </tr>
-        <tr>
-          <td>回答还原度</td>
-          <td class="good">精确——实时捕获</td>
-          <td class="mixed">重新生成（可能略有差异）</td>
-        </tr>
-        <tr>
-          <td>操作摩擦</td>
-          <td class="good">接近零</td>
-          <td class="mixed">低——一条命令</td>
-        </tr>
-        <tr>
-          <td>需要修改核心代码</td>
-          <td class="bad">是</td>
-          <td class="good">否</td>
-        </tr>
-        <tr>
-          <td>今天就能用</td>
-          <td class="bad">否</td>
-          <td class="good">是 ✓</td>
-        </tr>
-        <tr>
-          <td>解决根本原因</td>
-          <td class="good">是 ✓</td>
-          <td class="bad">替代方案</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- REFLECTION -->
-<section id="reflection">
-  <div class="container">
-    <div class="section-num reveal">04 — 反思</div>
-    <h2 class="reveal">下次我会<br>做哪些不同的选择。</h2>
-
-    <div class="reflection-grid reveal">
-      <div class="reflection-card">
-        <div class="reflection-num">01</div>
-        <div>
-          <div class="reflection-title">先做用户研究，再动手构建</div>
-          <p class="reflection-desc">我对受影响用户群体的识别来自推断，而非访谈。对 Claude Code 重度用户做一轮快速访谈，要么能验证这个痛点，要么会发现大多数人其实并不在意——两种结果都有价值。</p>
-        </div>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-num">02</div>
-        <div>
-          <div class="reflection-title">先做 Figma Mockup，再做插件</div>
-          <p class="reflection-desc">我在插件实现上花的时间多过设计提案本身。对于一个针对设计岗位的 Portfolio 作品，浮层改动的视觉稿会比可运行的 Node.js 代码更有说服力。顺序应该反过来。</p>
-        </div>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-num">03</div>
-        <div>
-          <div class="reflection-title">早期验证插件 API 假设</div>
-          <p class="reflection-desc">我生成了一个安装路径（~/.claude/skills/），结果发现是未经文档记录、不可靠的。在写 README 之前先做一个快速技术验证，可以省掉整整一轮迭代。</p>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="reveal">这个项目展示了什么</h3>
-
-    <div class="demonstrates reveal">
-      <div class="demo-item">在真实产品中识别 UX 缺陷并精确表述——Nielsen 映射、用户分群、根因与表象的区分</div>
-      <div class="demo-item">在真实约束下工作——架构、API 和 UX 约束——而不是在真空中设计</div>
-      <div class="demo-item">交付可运行的产物，而不只是一份提案</div>
-      <div class="demo-item">诚实面对不可行的方案和自己的过程失误</div>
-    </div>
-  </div>
-</section>
-
-<!-- LINKS -->
-<section id="links" style="border-bottom:none;">
-  <div class="container">
-    <div class="section-num reveal">05 — 链接</div>
-    <h2 class="reveal">查看完整作品。</h2>
-    <p class="reveal">完整插件、UX 提案和设计文件均已开源。</p>
-    <div class="links-row reveal">
-      <a href="https://github.com/your-username/btw-saver" class="link-btn link-btn-primary" target="_blank">
-        ◆ GitHub 仓库
-      </a>
-      <a href="./design/ux-proposal-zh.md" class="link-btn link-btn-secondary" target="_blank">
-        UX 改进提案 →
-      </a>
-      <a href="https://www.figma.com/design/PDnwBICEkkPfZHdI4ROzkg" class="link-btn link-btn-secondary" target="_blank">
-        Figma Mockup →
-      </a>
-      <a href="./index.html" class="link-btn link-btn-secondary" target="_blank">
-        English Version →
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-inner">
-      <div class="footer-left">Sheng · UX 设计师 + AI PM · 2026</div>
-      <div class="footer-right">btw-saver · 案例研究</div>
-    </div>
-  </div>
-</footer>
-
-<script>
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 60);
-        observer.unobserve(entry.target);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>btw-saver · 案例研究 by Sheng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #111111;
+        --bg2: #191919;
+        --bg3: #222222;
+        --border: #2a2a2a;
+        --dim: #555555;
+        --dim2: #888888;
+        --text: #e8e8e8;
+        --orange: #d77757;
+        --orange2: #e8956e;
+        --green: #4eba65;
+        --red: #ff6b80;
+        --blue: #7eb8f7;
+        --mono: "DM Mono", monospace;
+        --sans: "Noto Sans SC", sans-serif;
+        --serif: "Noto Serif SC", serif;
       }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-  reveals.forEach(el => observer.observe(el));
-</script>
-</body>
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.8;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+        opacity: 0.025;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      .container {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      section {
+        padding: 96px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      section:last-of-type {
+        border-bottom: none;
+      }
+
+      /* NAV */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        padding: 0 32px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(17, 17, 17, 0.88);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-logo {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--orange);
+        letter-spacing: 0.02em;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        font-family: var(--sans);
+        font-size: 13px;
+        color: var(--dim2);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
+      /* HERO */
+      #hero {
+        padding-top: 160px;
+        padding-bottom: 96px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero-eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--orange);
+        letter-spacing: 0.1em;
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hero-eyebrow::before {
+        content: "";
+        display: inline-block;
+        width: 24px;
+        height: 1px;
+        background: var(--orange);
+      }
+
+      h1 {
+        font-family: var(--serif);
+        font-size: clamp(32px, 5.5vw, 52px);
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        color: var(--text);
+        margin-bottom: 24px;
+      }
+
+      h1 em {
+        font-style: italic;
+        color: var(--orange2);
+      }
+
+      .hero-sub {
+        font-size: 16px;
+        color: var(--dim2);
+        max-width: 520px;
+        line-height: 1.85;
+        margin-bottom: 40px;
+        font-weight: 300;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        padding-top: 32px;
+        border-top: 1px solid var(--border);
+      }
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .meta-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--dim);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .meta-value {
+        font-size: 13px;
+        color: var(--dim2);
+      }
+
+      /* SECTION HEADERS */
+      .section-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--dim);
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-family: var(--serif);
+        font-size: clamp(22px, 3.5vw, 30px);
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--text);
+        margin-bottom: 32px;
+        letter-spacing: 0.03em;
+      }
+
+      h3 {
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--dim2);
+        letter-spacing: 0.08em;
+        margin-bottom: 16px;
+        margin-top: 40px;
+      }
+
+      h3:first-child {
+        margin-top: 0;
+      }
+
+      p {
+        color: var(--dim2);
+        margin-bottom: 20px;
+        font-size: 15px;
+        line-height: 1.9;
+        font-weight: 300;
+      }
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+      strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      code {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--orange2);
+        background: var(--bg2);
+        padding: 2px 7px;
+        border-radius: 3px;
+      }
+
+      /* TERMINAL */
+      .terminal {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 32px 0;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+
+      .terminal-bar {
+        background: var(--bg3);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #ff5f56;
+      }
+      .dot-y {
+        background: #ffbd2e;
+      }
+      .dot-g {
+        background: #27c93f;
+      }
+
+      .terminal-label {
+        font-size: 11px;
+        color: var(--dim);
+        margin-left: 8px;
+        letter-spacing: 0.04em;
+      }
+
+      .terminal-body {
+        padding: 20px;
+        line-height: 1.9;
+      }
+
+      .t-dim {
+        color: var(--dim);
+      }
+      .t-dim2 {
+        color: var(--dim2);
+      }
+      .t-white {
+        color: var(--text);
+      }
+      .t-orange {
+        color: var(--orange2);
+      }
+      .t-green {
+        color: var(--green);
+      }
+      .t-red {
+        color: var(--red);
+      }
+
+      /* JOURNEY */
+      .journey {
+        display: flex;
+        flex-direction: column;
+        margin: 32px 0;
+      }
+
+      .journey-step {
+        display: flex;
+        gap: 20px;
+        padding: 20px 0;
+        position: relative;
+      }
+
+      .journey-step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 19px;
+        top: 52px;
+        bottom: -20px;
+        width: 1px;
+        background: var(--border);
+      }
+
+      .journey-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--dim2);
+        position: relative;
+        z-index: 1;
+      }
+
+      .journey-step.bad .journey-icon {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .journey-content {
+        padding-top: 8px;
+      }
+      .journey-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+      .journey-desc {
+        font-size: 13.5px;
+        color: var(--dim2);
+        line-height: 1.7;
+        margin: 0;
+        font-weight: 300;
+      }
+      .journey-step.bad .journey-title {
+        color: var(--red);
+      }
+
+      /* TAG */
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 3px;
+        border: 1px solid;
+        letter-spacing: 0.04em;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+
+      .tag-orange {
+        color: var(--orange);
+        border-color: rgba(215, 119, 87, 0.35);
+        background: rgba(215, 119, 87, 0.07);
+      }
+      .tag-green {
+        color: var(--green);
+        border-color: rgba(78, 186, 101, 0.35);
+        background: rgba(78, 186, 101, 0.07);
+      }
+      .tag-red {
+        color: var(--red);
+        border-color: rgba(255, 107, 128, 0.35);
+        background: rgba(255, 107, 128, 0.07);
+      }
+
+      /* CALLOUT */
+      .callout {
+        border-left: 2px solid var(--orange);
+        padding: 20px 24px;
+        background: rgba(215, 119, 87, 0.05);
+        border-radius: 0 6px 6px 0;
+        margin: 32px 0;
+      }
+
+      .callout p {
+        font-family: var(--serif);
+        font-size: 18px;
+        font-style: italic;
+        color: var(--text);
+        line-height: 1.7;
+        margin: 0;
+        letter-spacing: 0.04em;
+      }
+
+      /* COMPARE TABLE */
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 32px 0;
+        font-size: 13.5px;
+      }
+
+      .compare-table th {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        color: var(--dim2);
+        background: var(--bg2);
+      }
+
+      .compare-table th:nth-child(2) {
+        color: var(--green);
+      }
+      .compare-table th:nth-child(3) {
+        color: var(--orange);
+      }
+
+      .compare-table td {
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--dim2);
+        vertical-align: top;
+        font-size: 13px;
+      }
+
+      .compare-table td:first-child {
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .compare-table tr:last-child td {
+        border-bottom: none;
+      }
+      .compare-table tr:hover td {
+        background: var(--bg2);
+      }
+
+      .good {
+        color: var(--green) !important;
+      }
+      .bad {
+        color: var(--dim) !important;
+      }
+      .mixed {
+        color: var(--orange2) !important;
+      }
+
+      /* MOCKUP GRID */
+      .mockup-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 32px 0;
+      }
+
+      .mockup-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .mockup-card-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--dim2);
+      }
+
+      .badge {
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 2px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .badge-before {
+        background: rgba(255, 107, 128, 0.15);
+        color: var(--red);
+      }
+      .badge-after {
+        background: rgba(78, 186, 101, 0.15);
+        color: var(--green);
+      }
+
+      .mockup-body {
+        padding: 16px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        line-height: 1.7;
+      }
+
+      .overlay-box {
+        background: #1e1e1e;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .overlay-header {
+        background: #161616;
+        padding: 6px 10px;
+        font-size: 11px;
+        color: var(--orange);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .overlay-content {
+        padding: 10px;
+        color: var(--text);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .overlay-footer {
+        background: #161616;
+        padding: 7px 10px;
+        border-top: 1px solid var(--border);
+        font-size: 10.5px;
+        color: var(--dim);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .save-btn {
+        background: rgba(78, 186, 101, 0.12);
+        border: 1px solid rgba(78, 186, 101, 0.4);
+        color: var(--green);
+        padding: 3px 9px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-family: var(--mono);
+      }
+
+      /* REFLECTION */
+      .reflection-grid {
+        display: grid;
+        gap: 16px;
+        margin: 32px 0;
+      }
+
+      .reflection-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 20px 24px;
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .reflection-num {
+        font-family: var(--mono);
+        font-size: 22px;
+        color: var(--border);
+        line-height: 1;
+        padding-top: 2px;
+      }
+
+      .reflection-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .reflection-desc {
+        font-size: 13.5px;
+        color: var(--dim2);
+        line-height: 1.75;
+        margin: 0;
+        font-weight: 300;
+      }
+
+      /* DEMONSTRATES */
+      .demonstrates {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 32px 0;
+      }
+
+      .demo-item {
+        padding: 16px 18px 16px 36px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 13.5px;
+        color: var(--dim2);
+        line-height: 1.65;
+        position: relative;
+        font-weight: 300;
+      }
+
+      .demo-item::before {
+        content: "◆";
+        position: absolute;
+        left: 14px;
+        top: 16px;
+        font-size: 8px;
+        color: var(--orange);
+      }
+
+      /* LINKS */
+      .links-row {
+        display: flex;
+        gap: 16px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+      }
+
+      .link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: var(--mono);
+        font-size: 12px;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        transition: all 0.2s;
+      }
+
+      .link-btn-primary {
+        background: var(--orange);
+        color: #111;
+        font-weight: 500;
+      }
+      .link-btn-primary:hover {
+        background: var(--orange2);
+      }
+      .link-btn-secondary {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        color: var(--dim2);
+      }
+      .link-btn-secondary:hover {
+        border-color: var(--dim2);
+        color: var(--text);
+      }
+
+      /* FOOTER */
+      footer {
+        padding: 48px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .footer-left,
+      .footer-right {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--dim);
+      }
+
+      /* REVEAL */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 600px) {
+        .mockup-grid,
+        .demonstrates {
+          grid-template-columns: 1fr;
+        }
+        .container {
+          padding: 0 20px;
+        }
+        nav {
+          padding: 0 20px;
+        }
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <div class="nav-logo">◆ btw-saver</div>
+      <ul class="nav-links">
+        <li><a href="#problem">问题</a></li>
+        <li><a href="#process">过程</a></li>
+        <li><a href="#solution">方案</a></li>
+        <li><a href="#reflection">反思</a></li>
+        <li><a href="#links">链接</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container">
+        <div class="hero-eyebrow">UX 案例研究 · Claude Code · 2026</div>
+        <h1>修复 /btw 中<em>不可见</em>的状态边界</h1>
+        <p class="hero-sub">
+          Claude Code 的 /btw
+          命令会创建临时侧边对话。关闭浮层后，回答永久消失——没有警告，没有恢复路径。我识别了这个设计缺陷，向
+          Anthropic 提交了核心修复提案，并以插件形式完成了一个可运行的替代方案。
+        </p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">角色</span>
+            <span class="meta-value">UX 设计师 · AI PM</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">类型</span>
+            <span class="meta-value">个人项目 · 研究 + 设计 + 开发</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">时间</span>
+            <span class="meta-value">2026-05</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">交付物</span>
+            <span class="meta-value">UX 提案 · 插件 · GitHub</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section id="problem">
+      <div class="container">
+        <div class="section-num reveal">01 — 问题</div>
+        <h2 class="reveal">回答消失了。<br />没有警告，没有恢复。</h2>
+
+        <p class="reveal">
+          这个问题是我在使用 Claude Code 时亲身遇到的。我用
+          <code>/btw</code> 提了一个问题，得到了有用的回答，按下
+          Escape——回答就消失了。我的第一反应是：<strong>这是 bug 吗？</strong>
+        </p>
+
+        <p class="reveal">
+          在调查架构之后，我确认这是刻意的设计。但<strong
+            >无论设计意图如何，这个时刻的用户体验是断裂的。</strong
+          >
+        </p>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span class="terminal-label">Claude Code — 用户旅程还原</span>
+          </div>
+          <div class="terminal-body">
+            <div>
+              <span class="t-dim">用户 </span><span class="t-orange">/btw</span
+              ><span class="t-dim2">
+                你喜欢多模型方案吗？比如 deepseek + claude？</span
+              >
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-dim">claude</span
+              ><span class="t-white">
+                多模型方案在架构上是合理的。DeepSeek 在成本效益</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-white">
+                上表现突出；Claude 在安全性和指令遵循上有优势…</span
+              >
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-dim">用户 </span
+              ><span class="t-dim2"> [按下 Escape]</span>
+            </div>
+            <div style="margin-top: 4px">
+              <span class="t-dim"> </span
+              ><span class="t-red">回答永久消失——没有任何提示。</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="reveal">
+          根本原因：<strong
+            >浮层的外观和交互感与普通 Claude 回答完全一致。</strong
+          >没有任何视觉线索区分"临时内容"与"持久内容"。这直接对应
+          <strong>Nielsen 可用性启发式第一条——系统状态的可见性。</strong>
+        </p>
+
+        <h3 class="reveal">受影响的用户群体</h3>
+
+        <div class="journey reveal">
+          <div class="journey-step">
+            <div class="journey-icon">①</div>
+            <div class="journey-content">
+              <div class="journey-title">Claude Code 新用户</div>
+              <p class="journey-desc">
+                尚未理解 /btw
+                的临时性本质。每一条回答看起来都一样——没有"这条会消失"的心智模型。
+              </p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-icon">②</div>
+            <div class="journey-content">
+              <div class="journey-title">深度专注工作中的开发者</div>
+              <p class="journey-desc">
+                在任务进行中用 /btw
+                提了一个问题，得到有价值的回答，然后上下文切换，忘记保存。高认知负荷的工作状态让这件事很容易发生。
+              </p>
+            </div>
+          </div>
+          <div class="journey-step bad">
+            <div class="journey-icon">③</div>
+            <div class="journey-content">
+              <div class="journey-title">ADHD 倾向用户——受影响最深</div>
+              <p class="journey-desc">
+                /btw 功能发布时，Reddit 社区称其为"送给我们这些有 ADHD 脑子的
+                Claude Code 用户的礼物"。这群最喜爱 /btw
+                的人，也最容易在保存前关闭浮层。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section id="process">
+      <div class="container">
+        <div class="section-num reveal">02 — 过程</div>
+        <h2 class="reveal">先梳理约束，<br />再谈设计。</h2>
+
+        <p class="reveal">
+          在寻找解决方案之前，我先梳理了真实的约束——架构、API 和 UX
+          三个层面。每一个约束都改变了最终方向。
+        </p>
+
+        <h3 class="reveal">三个改变方案的约束</h3>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span
+            ><span class="dot dot-g"></span>
+            <span class="terminal-label">约束分析</span>
+          </div>
+          <div class="terminal-body">
+            <div>
+              <span class="t-orange">架构 </span
+              ><span class="t-dim2"> /btw 回答从设计上就不进入对话历史。</span>
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → 任何插件都无法在关闭后捕获原始回答。</span
+              >
+            </div>
+            <div style="margin-top: 10px">
+              <span class="t-orange">API </span
+              ><span class="t-dim2">
+                Claude Code Hook 系统没有 /btw 专属生命周期事件。</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → 不存在 onBtwDismiss。最接近的是 UserPromptSubmit。</span
+              >
+            </div>
+            <div style="margin-top: 10px">
+              <span class="t-orange">UX </span
+              ><span class="t-dim2">
+                任何修复方案都不能改变 /btw 的默认行为。</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → 增加默认路径的摩擦 = 比问题本身更糟。</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>默认临时，主动持久。</p>
+        </div>
+
+        <h3 class="reveal">关键设计决策：命令命名</h3>
+
+        <p class="reveal">
+          第一版实现使用的命令是 <code>/btw-saver:save-btw</code>——19 个字符，而
+          <code>/btw</code> 只有 4 个。显然是错的。我评估了两个方向：
+        </p>
+
+        <div style="margin: 24px 0" class="reveal">
+          <div style="margin-bottom: 12px">
+            <span class="tag tag-green">选择 → 方向 A</span>
+            <code>/btw:save</code>
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--dim2);
+                margin-left: 12px;
+              "
+              >插件名改为 "btw"，带命名空间，9 个字符，可靠</span
+            >
+          </div>
+          <div>
+            <span class="tag tag-red">放弃 → 方向 B</span>
+            <code style="color: var(--dim2)">/save-btw</code>
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--dim2);
+                margin-left: 12px;
+              "
+              >~/.claude/skills/ standalone——未有文档支撑，不可验证</span
+            >
+          </div>
+        </div>
+
+        <p class="reveal">
+          我选择了方向 A。方向 B 依赖一个无法在官方文档中确认的目录约定。<strong
+            >发布一个诚实但稍欠优雅的方案，好过发布一个精美但不可靠的方案。</strong
+          >
+        </p>
+      </div>
+    </section>
+
+    <!-- SOLUTION -->
+    <section id="solution">
+      <div class="container">
+        <div class="section-num reveal">03 — 方案</div>
+        <h2 class="reveal">两个层次。<br />一个今天就能用。</h2>
+
+        <h3 class="reveal">第一层——核心修复提案（建议 Anthropic 实施）</h3>
+
+        <p class="reveal">
+          理想方案是对浮层组件做一个小改动：在底部操作区加入保存按钮。一个快捷键，零改动默认行为。
+        </p>
+
+        <div class="mockup-grid reveal">
+          <div class="mockup-card">
+            <div class="mockup-card-label">
+              <span class="badge badge-before">现状</span>
+              当前 /btw 浮层
+            </div>
+            <div class="mockup-body">
+              <div
+                style="color: var(--dim); font-size: 11px; margin-bottom: 8px"
+              >
+                > implement the auth middleware
+              </div>
+              <div class="overlay-box">
+                <div class="overlay-header">◆ /btw · side question</div>
+                <div class="overlay-content">
+                  <div style="color: var(--dim); margin-bottom: 6px">
+                    > 你喜欢多模型方案吗？
+                  </div>
+                  多模型方案在架构上是合理的。DeepSeek
+                  在成本效益上表现突出；Claude 在安全性上有优势…
+                </div>
+                <div class="overlay-footer">
+                  <span>Space / Enter / Esc to dismiss</span>
+                </div>
+              </div>
+              <div style="margin-top: 10px; color: var(--red); font-size: 11px">
+                ⚠ 关闭即永久消失，无任何提示
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-card-label">
+              <span class="badge badge-after">提案</span>
+              改进后的浮层
+            </div>
+            <div class="mockup-body">
+              <div
+                style="color: var(--dim); font-size: 11px; margin-bottom: 8px"
+              >
+                > implement the auth middleware
+              </div>
+              <div class="overlay-box">
+                <div class="overlay-header">◆ /btw · side question</div>
+                <div class="overlay-content">
+                  <div style="color: var(--dim); margin-bottom: 6px">
+                    > 你喜欢多模型方案吗？
+                  </div>
+                  多模型方案在架构上是合理的。DeepSeek
+                  在成本效益上表现突出；Claude 在安全性上有优势…
+                </div>
+                <div class="overlay-footer">
+                  <span>Space / Enter / Esc to dismiss</span>
+                  <span class="save-btn">[S] 保存到日志</span>
+                </div>
+              </div>
+              <div
+                style="margin-top: 10px; color: var(--green); font-size: 11px"
+              >
+                ✓ 一键保存，不打断工作流
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">第二层——可运行插件（已发布）</h3>
+
+        <p class="reveal">
+          由于核心修复需要 Anthropic 介入，我构建了一个 Claude Code
+          插件作为最优替代方案。
+        </p>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span
+            ><span class="dot dot-g"></span>
+            <span class="terminal-label">Claude Code — /btw:save 实际运行</span>
+          </div>
+          <div class="terminal-body">
+            <div>
+              <span class="t-dim">> </span
+              ><span class="t-orange">/btw:save</span
+              ><span class="t-dim2"> 你喜欢多模型方案吗？</span>
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-dim"> </span
+              ><span class="t-white"
+                >多模型方案在架构上是合理的。DeepSeek 在成本效益</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-white">上表现突出；Claude 在安全性上有优势…</span>
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-green"> 已保存到 .btw-log/btw-log.md</span>
+            </div>
+            <div style="margin-top: 12px; color: var(--dim); font-size: 12px">
+              # .btw-log/btw-log.md
+            </div>
+            <div style="color: var(--dim); font-size: 12px">---</div>
+            <div style="color: var(--orange2); font-size: 12px">
+              ## [2026-05-05 14:32] 你喜欢多模型方案吗？
+            </div>
+            <div style="color: var(--dim2); font-size: 12px">
+              多模型方案在架构上是合理的…
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">方案权衡</h3>
+
+        <table class="compare-table reveal">
+          <thead>
+            <tr>
+              <th></th>
+              <th>理想方案（保存按钮）</th>
+              <th>本插件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>触发时机</td>
+              <td class="good">关闭前，一键完成</td>
+              <td class="mixed">关闭后，运行 /btw:save</td>
+            </tr>
+            <tr>
+              <td>回答还原度</td>
+              <td class="good">精确——实时捕获</td>
+              <td class="mixed">重新生成（可能略有差异）</td>
+            </tr>
+            <tr>
+              <td>操作摩擦</td>
+              <td class="good">接近零</td>
+              <td class="mixed">低——一条命令</td>
+            </tr>
+            <tr>
+              <td>需要修改核心代码</td>
+              <td class="bad">是</td>
+              <td class="good">否</td>
+            </tr>
+            <tr>
+              <td>今天就能用</td>
+              <td class="bad">否</td>
+              <td class="good">是 ✓</td>
+            </tr>
+            <tr>
+              <td>解决根本原因</td>
+              <td class="good">是 ✓</td>
+              <td class="bad">替代方案</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REFLECTION -->
+    <section id="reflection">
+      <div class="container">
+        <div class="section-num reveal">04 — 反思</div>
+        <h2 class="reveal">下次我会<br />做哪些不同的选择。</h2>
+
+        <div class="reflection-grid reveal">
+          <div class="reflection-card">
+            <div class="reflection-num">01</div>
+            <div>
+              <div class="reflection-title">先做用户研究，再动手构建</div>
+              <p class="reflection-desc">
+                我对受影响用户群体的识别来自推断，而非访谈。对 Claude Code
+                重度用户做一轮快速访谈，要么能验证这个痛点，要么会发现大多数人其实并不在意——两种结果都有价值。
+              </p>
+            </div>
+          </div>
+          <div class="reflection-card">
+            <div class="reflection-num">02</div>
+            <div>
+              <div class="reflection-title">先做 Figma Mockup，再做插件</div>
+              <p class="reflection-desc">
+                我在插件实现上花的时间多过设计提案本身。对于一个针对设计岗位的
+                Portfolio 作品，浮层改动的视觉稿会比可运行的 Node.js
+                代码更有说服力。顺序应该反过来。
+              </p>
+            </div>
+          </div>
+          <div class="reflection-card">
+            <div class="reflection-num">03</div>
+            <div>
+              <div class="reflection-title">早期验证插件 API 假设</div>
+              <p class="reflection-desc">
+                我生成了一个安装路径（~/.claude/skills/），结果发现是未经文档记录、不可靠的。在写
+                README 之前先做一个快速技术验证，可以省掉整整一轮迭代。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">这个项目展示了什么</h3>
+
+        <div class="demonstrates reveal">
+          <div class="demo-item">
+            在真实产品中识别 UX 缺陷并精确表述——Nielsen
+            映射、用户分群、根因与表象的区分
+          </div>
+          <div class="demo-item">
+            在真实约束下工作——架构、API 和 UX 约束——而不是在真空中设计
+          </div>
+          <div class="demo-item">交付可运行的产物，而不只是一份提案</div>
+          <div class="demo-item">诚实面对不可行的方案和自己的过程失误</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LINKS -->
+    <section id="links" style="border-bottom: none">
+      <div class="container">
+        <div class="section-num reveal">05 — 链接</div>
+        <h2 class="reveal">查看完整作品。</h2>
+        <p class="reveal">完整插件、UX 提案和设计文件均已开源。</p>
+        <div class="links-row reveal">
+          <a
+            href="https://github.com/YANGxPM/btw-saver"
+            class="link-btn link-btn-primary"
+            target="_blank"
+          >
+            ◆ GitHub 仓库
+          </a>
+          <a
+            href="./design/UX-Proposal_zh.md"
+            class="link-btn link-btn-secondary"
+            target="_blank"
+          >
+            UX 改进提案 →
+          </a>
+          <a
+            href="https://www.figma.com/design/PDnwBICEkkPfZHdI4ROzkg"
+            class="link-btn link-btn-secondary"
+            target="_blank"
+          >
+            Figma Mockup →
+          </a>
+          <a
+            href="./index.html"
+            class="link-btn link-btn-secondary"
+            target="_blank"
+          >
+            English Version →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">Sheng · UX 设计师 + AI PM · 2026</div>
+          <div class="footer-right">btw-saver · 案例研究</div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+              setTimeout(() => entry.target.classList.add("visible"), i * 60);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
 </html>

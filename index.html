@@ -1,1020 +1,1372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>btw-saver · Case Study by Sheng</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg:       #111111;
-    --bg2:      #191919;
-    --bg3:      #222222;
-    --border:   #2a2a2a;
-    --dim:      #555555;
-    --dim2:     #888888;
-    --text:     #e8e8e8;
-    --orange:   #D77757;
-    --orange2:  #e8956e;
-    --green:    #4eba65;
-    --red:      #ff6b80;
-    --blue:     #7eb8f7;
-    --mono: 'DM Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
-    --serif: 'Playfair Display', serif;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ── NOISE TEXTURE OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-    opacity: 0.025;
-    pointer-events: none;
-    z-index: 100;
-  }
-
-  /* ── LAYOUT ── */
-  .container {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 0 32px;
-  }
-
-  section { padding: 96px 0; border-bottom: 1px solid var(--border); }
-  section:last-of-type { border-bottom: none; }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 50;
-    padding: 0 32px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(17,17,17,0.88);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav-logo {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--orange);
-    letter-spacing: 0.02em;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 28px;
-    list-style: none;
-  }
-
-  .nav-links a {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--dim2);
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--text); }
-
-  /* ── HERO ── */
-  #hero {
-    padding-top: 160px;
-    padding-bottom: 96px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--orange);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .hero-eyebrow::before {
-    content: '';
-    display: inline-block;
-    width: 24px;
-    height: 1px;
-    background: var(--orange);
-  }
-
-  h1 {
-    font-family: var(--serif);
-    font-size: clamp(36px, 6vw, 56px);
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    color: var(--text);
-    margin-bottom: 24px;
-  }
-
-  h1 em {
-    font-style: italic;
-    color: var(--orange2);
-  }
-
-  .hero-sub {
-    font-size: 17px;
-    color: var(--dim2);
-    max-width: 520px;
-    line-height: 1.65;
-    margin-bottom: 40px;
-  }
-
-  .meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    padding-top: 32px;
-    border-top: 1px solid var(--border);
-  }
-
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .meta-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .meta-value {
-    font-size: 13px;
-    color: var(--dim2);
-  }
-
-  /* ── SECTION HEADERS ── */
-  .section-num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--dim);
-    letter-spacing: 0.1em;
-    margin-bottom: 12px;
-  }
-
-  h2 {
-    font-family: var(--serif);
-    font-size: clamp(24px, 4vw, 32px);
-    font-weight: 600;
-    line-height: 1.25;
-    color: var(--text);
-    margin-bottom: 32px;
-  }
-
-  h3 {
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--dim2);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    margin-top: 40px;
-  }
-
-  h3:first-child { margin-top: 0; }
-
-  p {
-    color: var(--dim2);
-    margin-bottom: 20px;
-    font-size: 15.5px;
-    line-height: 1.75;
-  }
-
-  p:last-child { margin-bottom: 0; }
-
-  strong { color: var(--text); font-weight: 500; }
-
-  /* ── TERMINAL BLOCK ── */
-  .terminal {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 32px 0;
-    font-family: var(--mono);
-    font-size: 13px;
-  }
-
-  .terminal-bar {
-    background: var(--bg3);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  .dot-r { background: #ff5f56; }
-  .dot-y { background: #ffbd2e; }
-  .dot-g { background: #27c93f; }
-
-  .terminal-label {
-    font-size: 11px;
-    color: var(--dim);
-    margin-left: 8px;
-    letter-spacing: 0.04em;
-  }
-
-  .terminal-body {
-    padding: 20px;
-    line-height: 1.8;
-  }
-
-  .t-dim   { color: var(--dim); }
-  .t-dim2  { color: var(--dim2); }
-  .t-white { color: var(--text); }
-  .t-orange{ color: var(--orange2); }
-  .t-green { color: var(--green); }
-  .t-red   { color: var(--red); }
-
-  /* ── JOURNEY FLOW ── */
-  .journey {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    margin: 32px 0;
-  }
-
-  .journey-step {
-    display: flex;
-    gap: 20px;
-    padding: 20px 0;
-    position: relative;
-  }
-
-  .journey-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 52px;
-    bottom: -20px;
-    width: 1px;
-    background: var(--border);
-  }
-
-  .journey-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--dim2);
-    position: relative;
-    z-index: 1;
-  }
-
-  .journey-step.bad .journey-icon {
-    border-color: var(--red);
-    color: var(--red);
-  }
-
-  .journey-content {
-    padding-top: 8px;
-  }
-
-  .journey-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-
-  .journey-desc {
-    font-size: 13px;
-    color: var(--dim2);
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  .journey-step.bad .journey-title { color: var(--red); }
-
-  /* ── TAG ── */
-  .tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 3px;
-    border: 1px solid;
-    letter-spacing: 0.04em;
-    margin-right: 8px;
-    margin-bottom: 8px;
-  }
-
-  .tag-orange { color: var(--orange); border-color: rgba(215,119,87,0.35); background: rgba(215,119,87,0.07); }
-  .tag-green  { color: var(--green);  border-color: rgba(78,186,101,0.35); background: rgba(78,186,101,0.07); }
-  .tag-red    { color: var(--red);    border-color: rgba(255,107,128,0.35); background: rgba(255,107,128,0.07); }
-  .tag-blue   { color: var(--blue);   border-color: rgba(126,184,247,0.35); background: rgba(126,184,247,0.07); }
-  .tag-dim    { color: var(--dim2);   border-color: var(--border); background: var(--bg2); }
-
-  /* ── CALLOUT ── */
-  .callout {
-    border-left: 2px solid var(--orange);
-    padding: 20px 24px;
-    background: rgba(215,119,87,0.05);
-    border-radius: 0 6px 6px 0;
-    margin: 32px 0;
-  }
-
-  .callout p {
-    font-family: var(--serif);
-    font-size: 18px;
-    font-style: italic;
-    color: var(--text);
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* ── COMPARISON TABLE ── */
-  .compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 32px 0;
-    font-size: 14px;
-  }
-
-  .compare-table th {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    color: var(--dim2);
-    background: var(--bg2);
-  }
-
-  .compare-table th:nth-child(2) { color: var(--green); }
-  .compare-table th:nth-child(3) { color: var(--orange); }
-
-  .compare-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    color: var(--dim2);
-    vertical-align: top;
-    font-family: var(--mono);
-    font-size: 12.5px;
-  }
-
-  .compare-table td:first-child { color: var(--dim); }
-  .compare-table tr:last-child td { border-bottom: none; }
-  .compare-table tr:hover td { background: var(--bg2); }
-
-  .good  { color: var(--green) !important; }
-  .bad   { color: var(--dim)   !important; }
-  .mixed { color: var(--orange2) !important; }
-
-  /* ── MOCKUP FRAMES ── */
-  .mockup-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin: 32px 0;
-  }
-
-  .mockup-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .mockup-card-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--dim2);
-  }
-
-  .mockup-card-label .badge {
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 2px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .badge-before { background: rgba(255,107,128,0.15); color: var(--red); }
-  .badge-after  { background: rgba(78,186,101,0.15);  color: var(--green); }
-
-  .mockup-body {
-    padding: 16px;
-    font-family: var(--mono);
-    font-size: 11.5px;
-    line-height: 1.7;
-  }
-
-  .overlay-box {
-    background: #1e1e1e;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-
-  .overlay-header {
-    background: #161616;
-    padding: 6px 10px;
-    font-size: 11px;
-    color: var(--orange);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .overlay-content {
-    padding: 10px;
-    color: var(--text);
-    font-size: 11px;
-    line-height: 1.65;
-  }
-
-  .overlay-footer {
-    background: #161616;
-    padding: 7px 10px;
-    border-top: 1px solid var(--border);
-    font-size: 10.5px;
-    color: var(--dim);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .save-btn {
-    background: rgba(78,186,101,0.12);
-    border: 1px solid rgba(78,186,101,0.4);
-    color: var(--green);
-    padding: 3px 9px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-family: var(--mono);
-  }
-
-  /* ── REFLECTION CARDS ── */
-  .reflection-grid {
-    display: grid;
-    gap: 16px;
-    margin: 32px 0;
-  }
-
-  .reflection-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 20px 24px;
-    display: grid;
-    grid-template-columns: 40px 1fr;
-    gap: 16px;
-    align-items: start;
-  }
-
-  .reflection-num {
-    font-family: var(--mono);
-    font-size: 22px;
-    color: var(--border);
-    line-height: 1;
-    padding-top: 2px;
-  }
-
-  .reflection-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-
-  .reflection-desc {
-    font-size: 13.5px;
-    color: var(--dim2);
-    line-height: 1.65;
-    margin: 0;
-  }
-
-  /* ── DEMONSTRATES ── */
-  .demonstrates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 32px 0;
-  }
-
-  .demo-item {
-    padding: 16px 18px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 13.5px;
-    color: var(--dim2);
-    line-height: 1.55;
-    position: relative;
-    padding-left: 36px;
-  }
-
-  .demo-item::before {
-    content: '◆';
-    position: absolute;
-    left: 14px;
-    top: 16px;
-    font-size: 8px;
-    color: var(--orange);
-  }
-
-  /* ── FOOTER / LINKS ── */
-  .links-row {
-    display: flex;
-    gap: 16px;
-    margin-top: 40px;
-    flex-wrap: wrap;
-  }
-
-  .link-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-family: var(--mono);
-    font-size: 12px;
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    transition: all 0.2s;
-  }
-
-  .link-btn-primary {
-    background: var(--orange);
-    color: #111;
-    font-weight: 500;
-  }
-
-  .link-btn-primary:hover { background: var(--orange2); }
-
-  .link-btn-secondary {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--dim2);
-  }
-
-  .link-btn-secondary:hover { border-color: var(--dim2); color: var(--text); }
-
-  /* ── PAGE FOOTER ── */
-  footer {
-    padding: 48px 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .footer-left {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--dim);
-  }
-
-  .footer-right {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--dim);
-  }
-
-  /* ── SCROLL ANIMATIONS ── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    .mockup-grid, .demonstrates { grid-template-columns: 1fr; }
-    .container { padding: 0 20px; }
-    nav { padding: 0 20px; }
-    .nav-links { display: none; }
-  }
-</style>
-</head>
-<body>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">◆ btw-saver</div>
-  <ul class="nav-links">
-    <li><a href="#problem">Problem</a></li>
-    <li><a href="#process">Process</a></li>
-    <li><a href="#solution">Solution</a></li>
-    <li><a href="#reflection">Reflection</a></li>
-    <li><a href="#links">Links</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section id="hero">
-  <div class="container">
-    <div class="hero-eyebrow">UX Case Study · Claude Code · 2026</div>
-    <h1>Fixing the <em>invisible</em><br>state boundary in /btw</h1>
-    <p class="hero-sub">
-      Claude Code's /btw command creates ephemeral side conversations. When dismissed, the answer is gone — permanently, silently. I identified the failure, proposed a core fix, and shipped a working plugin.
-    </p>
-    <div class="meta-row">
-      <div class="meta-item">
-        <span class="meta-label">Role</span>
-        <span class="meta-value">UX Designer · AI PM</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Type</span>
-        <span class="meta-value">Solo · Research + Design + Build</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Timeline</span>
-        <span class="meta-value">2026-05</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Deliverables</span>
-        <span class="meta-value">UX Proposal · Plugin · GitHub</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROBLEM -->
-<section id="problem">
-  <div class="container">
-    <div class="section-num reveal">01 — PROBLEM</div>
-    <h2 class="reveal">The answer disappears.<br>No warning. No recovery.</h2>
-
-    <p class="reveal">
-      I discovered this firsthand. I asked a <code style="font-family:var(--mono);font-size:13px;color:var(--orange2);background:var(--bg2);padding:2px 7px;border-radius:3px;">/btw</code> question mid-session, got a useful answer, pressed Escape — and it was gone. My first instinct was: <em style="color:var(--text)">is this a bug?</em>
-    </p>
-
-    <p class="reveal">
-      After investigating the architecture, I confirmed it was intentional. But <strong>the user experience of that moment was broken regardless of intent.</strong>
-    </p>
-
-    <div class="reveal">
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span class="terminal-label">Claude Code — user journey</span>
-        </div>
-        <div class="terminal-body">
-          <div><span class="t-dim">user  </span><span class="t-orange">/btw</span><span class="t-dim2"> do you like multi-model setups like deepseek + claude?</span></div>
-          <div style="margin-top:8px"><span class="t-dim">claude</span><span class="t-white"> Multi-model setups are architecturally sound. DeepSeek</span></div>
-          <div><span class="t-dim">      </span><span class="t-white"> offers cost-efficiency; Claude excels at safety...</span></div>
-          <div style="margin-top:8px"><span class="t-dim">user  </span><span class="t-dim2"> [presses Escape]</span></div>
-          <div style="margin-top:4px"><span class="t-dim">      </span><span class="t-red">answer gone — permanently, silently.</span></div>
-        </div>
-      </div>
-    </div>
-
-    <p class="reveal">
-      The root cause: <strong>the overlay looks and feels identical to a normal Claude response.</strong> There is no visual affordance distinguishing ephemeral content from persistent content. This maps directly to <strong>Nielsen Heuristic #1 — Visibility of System Status.</strong>
-    </p>
-
-    <h3 class="reveal">Who is affected</h3>
-
-    <div class="journey reveal">
-      <div class="journey-step">
-        <div class="journey-icon">①</div>
-        <div class="journey-content">
-          <div class="journey-title">New Claude Code users</div>
-          <p class="journey-desc">Haven't yet internalized /btw's ephemeral nature. Every response looks the same — no mental model for "this one disappears."</p>
-        </div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-icon">②</div>
-        <div class="journey-content">
-          <div class="journey-title">Deep-focus developers</div>
-          <p class="journey-desc">Ask a /btw question mid-task, get a useful answer, context-switch before saving. High cognitive load makes this easy to miss.</p>
-        </div>
-      </div>
-      <div class="journey-step bad">
-        <div class="journey-icon">③</div>
-        <div class="journey-content">
-          <div class="journey-title">ADHD-pattern users — most affected</div>
-          <p class="journey-desc">When /btw launched, Reddit called it "a gift to us Claude Code homies that have the ADHD brain." This group — celebrated as /btw's biggest fans — is most likely to dismiss before saving.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROCESS -->
-<section id="process">
-  <div class="container">
-    <div class="section-num reveal">02 — PROCESS</div>
-    <h2 class="reveal">Constraints first.<br>Then design.</h2>
-
-    <p class="reveal">Before jumping to solutions, I mapped the real constraints — architectural, API, and UX. Each one shaped the final direction.</p>
-
-    <h3 class="reveal">Three constraints that changed the solution</h3>
-
-    <div class="terminal reveal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-        <span class="terminal-label">constraint analysis</span>
-      </div>
-      <div class="terminal-body">
-        <div><span class="t-orange">ARCH  </span><span class="t-dim2"> /btw answers never enter conversation history by design.</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → No plugin can capture the exact answer after dismissal.</span></div>
-        <div style="margin-top:10px"><span class="t-orange">API   </span><span class="t-dim2"> Claude Code hooks have no /btw-specific lifecycle event.</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → No onBtwDismiss to intercept. Best option: UserPromptSubmit.</span></div>
-        <div style="margin-top:10px"><span class="t-orange">UX    </span><span class="t-dim2"> The fix must not change /btw's default behavior.</span></div>
-        <div><span class="t-dim">      </span><span class="t-dim"> → Adding friction to the default path = worse than the problem.</span></div>
-      </div>
-    </div>
-
-    <div class="callout reveal">
-      <p>Ephemeral by default. Persistent by choice.</p>
-    </div>
-
-    <h3 class="reveal">Key design decision: command naming</h3>
-
-    <p class="reveal">
-      The first implementation used <code style="font-family:var(--mono);font-size:13px;color:var(--orange2);background:var(--bg2);padding:2px 6px;border-radius:3px;">/btw-saver:save-btw</code> — 19 characters vs /btw's 4. Clearly wrong. I evaluated two directions:
-    </p>
-
-    <div style="margin: 24px 0;" class="reveal">
-      <div style="margin-bottom:12px;">
-        <span class="tag tag-green">Chosen → Option A</span>
-        <span style="font-family:var(--mono);font-size:13px;color:var(--text);">/btw:save</span>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--dim2);margin-left:12px;">rename plugin to "btw" → namespaced, 9 chars, reliable</span>
-      </div>
-      <div>
-        <span class="tag tag-red">Dropped → Option B</span>
-        <span style="font-family:var(--mono);font-size:13px;color:var(--dim2);">/save-btw</span>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--dim2);margin-left:12px;">standalone skill at ~/.claude/skills/ — undocumented, unverifiable</span>
-      </div>
-    </div>
-
-    <p class="reveal">
-      I chose Option A. Option B depended on a directory convention I couldn't verify in official docs. <strong>Shipping something honest and slightly less elegant is better than shipping something polished that doesn't work.</strong>
-    </p>
-  </div>
-</section>
-
-<!-- SOLUTION -->
-<section id="solution">
-  <div class="container">
-    <div class="section-num reveal">03 — SOLUTION</div>
-    <h2 class="reveal">Two layers.<br>One ships today.</h2>
-
-    <h3 class="reveal">Layer 1 — Core fix proposal for Anthropic</h3>
-
-    <p class="reveal">The ideal solution is a small change to the overlay component: a Save button in the footer. One keystroke. Zero change to default behavior.</p>
-
-    <div class="mockup-grid reveal">
-      <div class="mockup-card">
-        <div class="mockup-card-label">
-          <span class="badge badge-before">Before</span>
-          Current /btw overlay
-        </div>
-        <div class="mockup-body">
-          <div style="color:var(--dim);font-size:11px;margin-bottom:8px;">> implement the auth middleware</div>
-          <div class="overlay-box">
-            <div class="overlay-header">◆ /btw · side question</div>
-            <div class="overlay-content">
-              <div style="color:var(--dim);margin-bottom:6px;">> do you like multi-model setups?</div>
-              Multi-model setups are architecturally sound. DeepSeek offers cost-efficiency; Claude excels at safety and instruction-following...
-            </div>
-            <div class="overlay-footer">
-              <span>Space / Enter / Esc  to dismiss</span>
-            </div>
-          </div>
-          <div style="margin-top:10px;color:var(--red);font-size:11px;">⚠ answer gone on dismiss, no warning</div>
-        </div>
-      </div>
-
-      <div class="mockup-card">
-        <div class="mockup-card-label">
-          <span class="badge badge-after">After</span>
-          Proposed overlay
-        </div>
-        <div class="mockup-body">
-          <div style="color:var(--dim);font-size:11px;margin-bottom:8px;">> implement the auth middleware</div>
-          <div class="overlay-box">
-            <div class="overlay-header">◆ /btw · side question</div>
-            <div class="overlay-content">
-              <div style="color:var(--dim);margin-bottom:6px;">> do you like multi-model setups?</div>
-              Multi-model setups are architecturally sound. DeepSeek offers cost-efficiency; Claude excels at safety and instruction-following...
-            </div>
-            <div class="overlay-footer">
-              <span>Space / Enter / Esc  to dismiss</span>
-              <span class="save-btn">[S]  Save to log</span>
-            </div>
-          </div>
-          <div style="margin-top:10px;color:var(--green);font-size:11px;">✓ one keystroke, no workflow interruption</div>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="reveal">Layer 2 — Working plugin (shipped)</h3>
-
-    <p class="reveal">Since the core fix requires Anthropic to act, I built a Claude Code plugin as a best-effort alternative.</p>
-
-    <div class="terminal reveal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-        <span class="terminal-label">Claude Code — /btw:save in action</span>
-      </div>
-      <div class="terminal-body">
-        <div><span class="t-dim">> </span><span class="t-orange">/btw:save</span><span class="t-dim2"> do you like multi-model setups?</span></div>
-        <div style="margin-top:8px"><span class="t-dim">  </span><span class="t-white">Multi-model setups are architecturally sound. DeepSeek</span></div>
-        <div><span class="t-dim">  </span><span class="t-white">offers cost-efficiency; Claude excels at safety...</span></div>
-        <div style="margin-top:8px"><span class="t-green">  Saved to .btw-log/btw-log.md</span></div>
-        <div style="margin-top:12px;color:var(--dim);font-size:12px;">  # .btw-log/btw-log.md</div>
-        <div style="color:var(--dim);font-size:12px;">  ---</div>
-        <div style="color:var(--orange2);font-size:12px;">  ## [2026-05-05 14:32]  do you like multi-model setups?</div>
-        <div style="color:var(--dim2);font-size:12px;">  Multi-model setups are architecturally sound...</div>
-      </div>
-    </div>
-
-    <h3 class="reveal">Tradeoffs</h3>
-
-    <table class="compare-table reveal">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Ideal Fix (Save Button)</th>
-          <th>This Plugin</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Trigger</td>
-          <td class="good">One keystroke at dismissal</td>
-          <td class="mixed">/btw:save after dismissal</td>
-        </tr>
-        <tr>
-          <td>Answer fidelity</td>
-          <td class="good">Exact — captured live</td>
-          <td class="mixed">Re-generated (may differ)</td>
-        </tr>
-        <tr>
-          <td>User friction</td>
-          <td class="good">Near-zero</td>
-          <td class="mixed">Low — one command</td>
-        </tr>
-        <tr>
-          <td>Requires core change</td>
-          <td class="bad">Yes</td>
-          <td class="good">No</td>
-        </tr>
-        <tr>
-          <td>Ships today</td>
-          <td class="bad">No</td>
-          <td class="good">Yes ✓</td>
-        </tr>
-        <tr>
-          <td>Solves root cause</td>
-          <td class="good">Yes ✓</td>
-          <td class="bad">Workaround</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- REFLECTION -->
-<section id="reflection">
-  <div class="container">
-    <div class="section-num reveal">04 — REFLECTION</div>
-    <h2 class="reveal">What I'd do<br>differently.</h2>
-
-    <div class="reflection-grid reveal">
-      <div class="reflection-card">
-        <div class="reflection-num">01</div>
-        <div>
-          <div class="reflection-title">User research before building</div>
-          <p class="reflection-desc">I identified affected users through inference, not interviews. A quick round with Claude Code power users would either validate the pain or reveal that most people don't actually care — both are useful signals.</p>
-        </div>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-num">02</div>
-        <div>
-          <div class="reflection-title">Figma mockup before plugin</div>
-          <p class="reflection-desc">I spent more time on plugin implementation than on the design proposal. For a portfolio piece targeting a design role, the overlay Before/After mockup is more persuasive than working Node.js code. The order should have been reversed.</p>
-        </div>
-      </div>
-      <div class="reflection-card">
-        <div class="reflection-num">03</div>
-        <div>
-          <div class="reflection-title">Validate API assumptions early</div>
-          <p class="reflection-desc">I generated an install path (~/.claude/skills/) that turned out to be undocumented and unreliable. A 10-minute technical spike before writing the README would have saved a full iteration cycle.</p>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="reveal">What this project demonstrates</h3>
-
-    <div class="demonstrates reveal">
-      <div class="demo-item">Identifying a UX failure in a live product and articulating it precisely — Nielsen mapping, user segmentation, root cause vs. symptom</div>
-      <div class="demo-item">Operating within real constraints — architectural, API, and UX — rather than designing in a vacuum</div>
-      <div class="demo-item">Shipping a working artifact, not just a proposal</div>
-      <div class="demo-item">Being honest about what doesn't work — including my own process mistakes</div>
-    </div>
-  </div>
-</section>
-
-<!-- LINKS -->
-<section id="links" style="border-bottom:none;">
-  <div class="container">
-    <div class="section-num reveal">05 — LINKS</div>
-    <h2 class="reveal">See the work.</h2>
-    <p class="reveal">The full plugin, UX proposal, and design files are open source.</p>
-    <div class="links-row reveal">
-      <a href="https://github.com/your-username/btw-saver" class="link-btn link-btn-primary" target="_blank">
-        ◆ GitHub Repository
-      </a>
-      <a href="./design/ux-proposal.md" class="link-btn link-btn-secondary" target="_blank">
-        UX Proposal →
-      </a>
-      <a href="https://www.figma.com/design/PDnwBICEkkPfZHdI4ROzkg" class="link-btn link-btn-secondary" target="_blank">
-        Figma Mockup →
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-inner">
-      <div class="footer-left">Sheng · UX Designer + AI PM · 2026</div>
-      <div class="footer-right">btw-saver · Case Study</div>
-    </div>
-  </div>
-</footer>
-
-<script>
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 60);
-        observer.unobserve(entry.target);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>btw-saver · Case Study by Sheng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #111111;
+        --bg2: #191919;
+        --bg3: #222222;
+        --border: #2a2a2a;
+        --dim: #555555;
+        --dim2: #888888;
+        --text: #e8e8e8;
+        --orange: #d77757;
+        --orange2: #e8956e;
+        --green: #4eba65;
+        --red: #ff6b80;
+        --blue: #7eb8f7;
+        --mono: "DM Mono", monospace;
+        --sans: "DM Sans", sans-serif;
+        --serif: "Playfair Display", serif;
       }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-  reveals.forEach(el => observer.observe(el));
-</script>
-</body>
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── NOISE TEXTURE OVERLAY ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+        opacity: 0.025;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      /* ── LAYOUT ── */
+      .container {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      section {
+        padding: 96px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      section:last-of-type {
+        border-bottom: none;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        padding: 0 32px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(17, 17, 17, 0.88);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-logo {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--orange);
+        letter-spacing: 0.02em;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--dim2);
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
+      /* ── HERO ── */
+      #hero {
+        padding-top: 160px;
+        padding-bottom: 96px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero-eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--orange);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hero-eyebrow::before {
+        content: "";
+        display: inline-block;
+        width: 24px;
+        height: 1px;
+        background: var(--orange);
+      }
+
+      h1 {
+        font-family: var(--serif);
+        font-size: clamp(36px, 6vw, 56px);
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        color: var(--text);
+        margin-bottom: 24px;
+      }
+
+      h1 em {
+        font-style: italic;
+        color: var(--orange2);
+      }
+
+      .hero-sub {
+        font-size: 17px;
+        color: var(--dim2);
+        max-width: 520px;
+        line-height: 1.65;
+        margin-bottom: 40px;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        padding-top: 32px;
+        border-top: 1px solid var(--border);
+      }
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .meta-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--dim);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .meta-value {
+        font-size: 13px;
+        color: var(--dim2);
+      }
+
+      /* ── SECTION HEADERS ── */
+      .section-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--dim);
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-family: var(--serif);
+        font-size: clamp(24px, 4vw, 32px);
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--text);
+        margin-bottom: 32px;
+      }
+
+      h3 {
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dim2);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        margin-top: 40px;
+      }
+
+      h3:first-child {
+        margin-top: 0;
+      }
+
+      p {
+        color: var(--dim2);
+        margin-bottom: 20px;
+        font-size: 15.5px;
+        line-height: 1.75;
+      }
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* ── TERMINAL BLOCK ── */
+      .terminal {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 32px 0;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+
+      .terminal-bar {
+        background: var(--bg3);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #ff5f56;
+      }
+      .dot-y {
+        background: #ffbd2e;
+      }
+      .dot-g {
+        background: #27c93f;
+      }
+
+      .terminal-label {
+        font-size: 11px;
+        color: var(--dim);
+        margin-left: 8px;
+        letter-spacing: 0.04em;
+      }
+
+      .terminal-body {
+        padding: 20px;
+        line-height: 1.8;
+      }
+
+      .t-dim {
+        color: var(--dim);
+      }
+      .t-dim2 {
+        color: var(--dim2);
+      }
+      .t-white {
+        color: var(--text);
+      }
+      .t-orange {
+        color: var(--orange2);
+      }
+      .t-green {
+        color: var(--green);
+      }
+      .t-red {
+        color: var(--red);
+      }
+
+      /* ── JOURNEY FLOW ── */
+      .journey {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 32px 0;
+      }
+
+      .journey-step {
+        display: flex;
+        gap: 20px;
+        padding: 20px 0;
+        position: relative;
+      }
+
+      .journey-step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 19px;
+        top: 52px;
+        bottom: -20px;
+        width: 1px;
+        background: var(--border);
+      }
+
+      .journey-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--bg2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--dim2);
+        position: relative;
+        z-index: 1;
+      }
+
+      .journey-step.bad .journey-icon {
+        border-color: var(--red);
+        color: var(--red);
+      }
+
+      .journey-content {
+        padding-top: 8px;
+      }
+
+      .journey-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .journey-desc {
+        font-size: 13px;
+        color: var(--dim2);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .journey-step.bad .journey-title {
+        color: var(--red);
+      }
+
+      /* ── TAG ── */
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 3px;
+        border: 1px solid;
+        letter-spacing: 0.04em;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+
+      .tag-orange {
+        color: var(--orange);
+        border-color: rgba(215, 119, 87, 0.35);
+        background: rgba(215, 119, 87, 0.07);
+      }
+      .tag-green {
+        color: var(--green);
+        border-color: rgba(78, 186, 101, 0.35);
+        background: rgba(78, 186, 101, 0.07);
+      }
+      .tag-red {
+        color: var(--red);
+        border-color: rgba(255, 107, 128, 0.35);
+        background: rgba(255, 107, 128, 0.07);
+      }
+      .tag-blue {
+        color: var(--blue);
+        border-color: rgba(126, 184, 247, 0.35);
+        background: rgba(126, 184, 247, 0.07);
+      }
+      .tag-dim {
+        color: var(--dim2);
+        border-color: var(--border);
+        background: var(--bg2);
+      }
+
+      /* ── CALLOUT ── */
+      .callout {
+        border-left: 2px solid var(--orange);
+        padding: 20px 24px;
+        background: rgba(215, 119, 87, 0.05);
+        border-radius: 0 6px 6px 0;
+        margin: 32px 0;
+      }
+
+      .callout p {
+        font-family: var(--serif);
+        font-size: 18px;
+        font-style: italic;
+        color: var(--text);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* ── COMPARISON TABLE ── */
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 32px 0;
+        font-size: 14px;
+      }
+
+      .compare-table th {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        color: var(--dim2);
+        background: var(--bg2);
+      }
+
+      .compare-table th:nth-child(2) {
+        color: var(--green);
+      }
+      .compare-table th:nth-child(3) {
+        color: var(--orange);
+      }
+
+      .compare-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--dim2);
+        vertical-align: top;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+
+      .compare-table td:first-child {
+        color: var(--dim);
+      }
+      .compare-table tr:last-child td {
+        border-bottom: none;
+      }
+      .compare-table tr:hover td {
+        background: var(--bg2);
+      }
+
+      .good {
+        color: var(--green) !important;
+      }
+      .bad {
+        color: var(--dim) !important;
+      }
+      .mixed {
+        color: var(--orange2) !important;
+      }
+
+      /* ── MOCKUP FRAMES ── */
+      .mockup-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 32px 0;
+      }
+
+      .mockup-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .mockup-card-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--dim2);
+      }
+
+      .mockup-card-label .badge {
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 2px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .badge-before {
+        background: rgba(255, 107, 128, 0.15);
+        color: var(--red);
+      }
+      .badge-after {
+        background: rgba(78, 186, 101, 0.15);
+        color: var(--green);
+      }
+
+      .mockup-body {
+        padding: 16px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        line-height: 1.7;
+      }
+
+      .overlay-box {
+        background: #1e1e1e;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .overlay-header {
+        background: #161616;
+        padding: 6px 10px;
+        font-size: 11px;
+        color: var(--orange);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .overlay-content {
+        padding: 10px;
+        color: var(--text);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .overlay-footer {
+        background: #161616;
+        padding: 7px 10px;
+        border-top: 1px solid var(--border);
+        font-size: 10.5px;
+        color: var(--dim);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .save-btn {
+        background: rgba(78, 186, 101, 0.12);
+        border: 1px solid rgba(78, 186, 101, 0.4);
+        color: var(--green);
+        padding: 3px 9px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-family: var(--mono);
+      }
+
+      /* ── REFLECTION CARDS ── */
+      .reflection-grid {
+        display: grid;
+        gap: 16px;
+        margin: 32px 0;
+      }
+
+      .reflection-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 20px 24px;
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .reflection-num {
+        font-family: var(--mono);
+        font-size: 22px;
+        color: var(--border);
+        line-height: 1;
+        padding-top: 2px;
+      }
+
+      .reflection-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+
+      .reflection-desc {
+        font-size: 13.5px;
+        color: var(--dim2);
+        line-height: 1.65;
+        margin: 0;
+      }
+
+      /* ── DEMONSTRATES ── */
+      .demonstrates {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 32px 0;
+      }
+
+      .demo-item {
+        padding: 16px 18px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 13.5px;
+        color: var(--dim2);
+        line-height: 1.55;
+        position: relative;
+        padding-left: 36px;
+      }
+
+      .demo-item::before {
+        content: "◆";
+        position: absolute;
+        left: 14px;
+        top: 16px;
+        font-size: 8px;
+        color: var(--orange);
+      }
+
+      /* ── FOOTER / LINKS ── */
+      .links-row {
+        display: flex;
+        gap: 16px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+      }
+
+      .link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: var(--mono);
+        font-size: 12px;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        transition: all 0.2s;
+      }
+
+      .link-btn-primary {
+        background: var(--orange);
+        color: #111;
+        font-weight: 500;
+      }
+
+      .link-btn-primary:hover {
+        background: var(--orange2);
+      }
+
+      .link-btn-secondary {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        color: var(--dim2);
+      }
+
+      .link-btn-secondary:hover {
+        border-color: var(--dim2);
+        color: var(--text);
+      }
+
+      /* ── PAGE FOOTER ── */
+      footer {
+        padding: 48px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .footer-left {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--dim);
+      }
+
+      .footer-right {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--dim);
+      }
+
+      /* ── SCROLL ANIMATIONS ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 600px) {
+        .mockup-grid,
+        .demonstrates {
+          grid-template-columns: 1fr;
+        }
+        .container {
+          padding: 0 20px;
+        }
+        nav {
+          padding: 0 20px;
+        }
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <div class="nav-logo">◆ btw-saver</div>
+      <ul class="nav-links">
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#solution">Solution</a></li>
+        <li><a href="#reflection">Reflection</a></li>
+        <li><a href="#links">Links</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container">
+        <div class="hero-eyebrow">UX Case Study · Claude Code · 2026</div>
+        <h1>Fixing the <em>invisible</em><br />state boundary in /btw</h1>
+        <p class="hero-sub">
+          Claude Code's /btw command creates ephemeral side conversations. When
+          dismissed, the answer is gone — permanently, silently. I identified
+          the failure, proposed a core fix, and shipped a working plugin.
+        </p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">Role</span>
+            <span class="meta-value">UX Designer · AI PM</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Type</span>
+            <span class="meta-value">Solo · Research + Design + Build</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Timeline</span>
+            <span class="meta-value">2026-05</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Deliverables</span>
+            <span class="meta-value">UX Proposal · Plugin · GitHub</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section id="problem">
+      <div class="container">
+        <div class="section-num reveal">01 — PROBLEM</div>
+        <h2 class="reveal">
+          The answer disappears.<br />No warning. No recovery.
+        </h2>
+
+        <p class="reveal">
+          I discovered this firsthand. I asked a
+          <code
+            style="
+              font-family: var(--mono);
+              font-size: 13px;
+              color: var(--orange2);
+              background: var(--bg2);
+              padding: 2px 7px;
+              border-radius: 3px;
+            "
+            >/btw</code
+          >
+          question mid-session, got a useful answer, pressed Escape — and it was
+          gone. My first instinct was:
+          <em style="color: var(--text)">is this a bug?</em>
+        </p>
+
+        <p class="reveal">
+          After investigating the architecture, I confirmed it was intentional.
+          But
+          <strong
+            >the user experience of that moment was broken regardless of
+            intent.</strong
+          >
+        </p>
+
+        <div class="reveal">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span class="terminal-label">Claude Code — user journey</span>
+            </div>
+            <div class="terminal-body">
+              <div>
+                <span class="t-dim">user </span
+                ><span class="t-orange">/btw</span
+                ><span class="t-dim2">
+                  do you like multi-model setups like deepseek + claude?</span
+                >
+              </div>
+              <div style="margin-top: 8px">
+                <span class="t-dim">claude</span
+                ><span class="t-white">
+                  Multi-model setups are architecturally sound. DeepSeek</span
+                >
+              </div>
+              <div>
+                <span class="t-dim"> </span
+                ><span class="t-white">
+                  offers cost-efficiency; Claude excels at safety...</span
+                >
+              </div>
+              <div style="margin-top: 8px">
+                <span class="t-dim">user </span
+                ><span class="t-dim2"> [presses Escape]</span>
+              </div>
+              <div style="margin-top: 4px">
+                <span class="t-dim"> </span
+                ><span class="t-red">answer gone — permanently, silently.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="reveal">
+          The root cause:
+          <strong
+            >the overlay looks and feels identical to a normal Claude
+            response.</strong
+          >
+          There is no visual affordance distinguishing ephemeral content from
+          persistent content. This maps directly to
+          <strong>Nielsen Heuristic #1 — Visibility of System Status.</strong>
+        </p>
+
+        <h3 class="reveal">Who is affected</h3>
+
+        <div class="journey reveal">
+          <div class="journey-step">
+            <div class="journey-icon">①</div>
+            <div class="journey-content">
+              <div class="journey-title">New Claude Code users</div>
+              <p class="journey-desc">
+                Haven't yet internalized /btw's ephemeral nature. Every response
+                looks the same — no mental model for "this one disappears."
+              </p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-icon">②</div>
+            <div class="journey-content">
+              <div class="journey-title">Deep-focus developers</div>
+              <p class="journey-desc">
+                Ask a /btw question mid-task, get a useful answer,
+                context-switch before saving. High cognitive load makes this
+                easy to miss.
+              </p>
+            </div>
+          </div>
+          <div class="journey-step bad">
+            <div class="journey-icon">③</div>
+            <div class="journey-content">
+              <div class="journey-title">
+                ADHD-pattern users — most affected
+              </div>
+              <p class="journey-desc">
+                When /btw launched, Reddit called it "a gift to us Claude Code
+                homies that have the ADHD brain." This group — celebrated as
+                /btw's biggest fans — is most likely to dismiss before saving.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section id="process">
+      <div class="container">
+        <div class="section-num reveal">02 — PROCESS</div>
+        <h2 class="reveal">Constraints first.<br />Then design.</h2>
+
+        <p class="reveal">
+          Before jumping to solutions, I mapped the real constraints —
+          architectural, API, and UX. Each one shaped the final direction.
+        </p>
+
+        <h3 class="reveal">Three constraints that changed the solution</h3>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span
+            ><span class="dot dot-g"></span>
+            <span class="terminal-label">constraint analysis</span>
+          </div>
+          <div class="terminal-body">
+            <div>
+              <span class="t-orange">ARCH </span
+              ><span class="t-dim2">
+                /btw answers never enter conversation history by design.</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → No plugin can capture the exact answer after dismissal.</span
+              >
+            </div>
+            <div style="margin-top: 10px">
+              <span class="t-orange">API </span
+              ><span class="t-dim2">
+                Claude Code hooks have no /btw-specific lifecycle event.</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → No onBtwDismiss to intercept. Best option:
+                UserPromptSubmit.</span
+              >
+            </div>
+            <div style="margin-top: 10px">
+              <span class="t-orange">UX </span
+              ><span class="t-dim2">
+                The fix must not change /btw's default behavior.</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-dim">
+                → Adding friction to the default path = worse than the
+                problem.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>Ephemeral by default. Persistent by choice.</p>
+        </div>
+
+        <h3 class="reveal">Key design decision: command naming</h3>
+
+        <p class="reveal">
+          The first implementation used
+          <code
+            style="
+              font-family: var(--mono);
+              font-size: 13px;
+              color: var(--orange2);
+              background: var(--bg2);
+              padding: 2px 6px;
+              border-radius: 3px;
+            "
+            >/btw-saver:save-btw</code
+          >
+          — 19 characters vs /btw's 4. Clearly wrong. I evaluated two
+          directions:
+        </p>
+
+        <div style="margin: 24px 0" class="reveal">
+          <div style="margin-bottom: 12px">
+            <span class="tag tag-green">Chosen → Option A</span>
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--text);
+              "
+              >/btw:save</span
+            >
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--dim2);
+                margin-left: 12px;
+              "
+              >rename plugin to "btw" → namespaced, 9 chars, reliable</span
+            >
+          </div>
+          <div>
+            <span class="tag tag-red">Dropped → Option B</span>
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--dim2);
+              "
+              >/save-btw</span
+            >
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 12px;
+                color: var(--dim2);
+                margin-left: 12px;
+              "
+              >standalone skill at ~/.claude/skills/ — undocumented,
+              unverifiable</span
+            >
+          </div>
+        </div>
+
+        <p class="reveal">
+          I chose Option A. Option B depended on a directory convention I
+          couldn't verify in official docs.
+          <strong
+            >Shipping something honest and slightly less elegant is better than
+            shipping something polished that doesn't work.</strong
+          >
+        </p>
+      </div>
+    </section>
+
+    <!-- SOLUTION -->
+    <section id="solution">
+      <div class="container">
+        <div class="section-num reveal">03 — SOLUTION</div>
+        <h2 class="reveal">Two layers.<br />One ships today.</h2>
+
+        <h3 class="reveal">Layer 1 — Core fix proposal for Anthropic</h3>
+
+        <p class="reveal">
+          The ideal solution is a small change to the overlay component: a Save
+          button in the footer. One keystroke. Zero change to default behavior.
+        </p>
+
+        <div class="mockup-grid reveal">
+          <div class="mockup-card">
+            <div class="mockup-card-label">
+              <span class="badge badge-before">Before</span>
+              Current /btw overlay
+            </div>
+            <div class="mockup-body">
+              <div
+                style="color: var(--dim); font-size: 11px; margin-bottom: 8px"
+              >
+                > implement the auth middleware
+              </div>
+              <div class="overlay-box">
+                <div class="overlay-header">◆ /btw · side question</div>
+                <div class="overlay-content">
+                  <div style="color: var(--dim); margin-bottom: 6px">
+                    > do you like multi-model setups?
+                  </div>
+                  Multi-model setups are architecturally sound. DeepSeek offers
+                  cost-efficiency; Claude excels at safety and
+                  instruction-following...
+                </div>
+                <div class="overlay-footer">
+                  <span>Space / Enter / Esc to dismiss</span>
+                </div>
+              </div>
+              <div style="margin-top: 10px; color: var(--red); font-size: 11px">
+                ⚠ answer gone on dismiss, no warning
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-card">
+            <div class="mockup-card-label">
+              <span class="badge badge-after">After</span>
+              Proposed overlay
+            </div>
+            <div class="mockup-body">
+              <div
+                style="color: var(--dim); font-size: 11px; margin-bottom: 8px"
+              >
+                > implement the auth middleware
+              </div>
+              <div class="overlay-box">
+                <div class="overlay-header">◆ /btw · side question</div>
+                <div class="overlay-content">
+                  <div style="color: var(--dim); margin-bottom: 6px">
+                    > do you like multi-model setups?
+                  </div>
+                  Multi-model setups are architecturally sound. DeepSeek offers
+                  cost-efficiency; Claude excels at safety and
+                  instruction-following...
+                </div>
+                <div class="overlay-footer">
+                  <span>Space / Enter / Esc to dismiss</span>
+                  <span class="save-btn">[S] Save to log</span>
+                </div>
+              </div>
+              <div
+                style="margin-top: 10px; color: var(--green); font-size: 11px"
+              >
+                ✓ one keystroke, no workflow interruption
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">Layer 2 — Working plugin (shipped)</h3>
+
+        <p class="reveal">
+          Since the core fix requires Anthropic to act, I built a Claude Code
+          plugin as a best-effort alternative.
+        </p>
+
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-r"></span><span class="dot dot-y"></span
+            ><span class="dot dot-g"></span>
+            <span class="terminal-label"
+              >Claude Code — /btw:save in action</span
+            >
+          </div>
+          <div class="terminal-body">
+            <div>
+              <span class="t-dim">> </span
+              ><span class="t-orange">/btw:save</span
+              ><span class="t-dim2"> do you like multi-model setups?</span>
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-dim"> </span
+              ><span class="t-white"
+                >Multi-model setups are architecturally sound. DeepSeek</span
+              >
+            </div>
+            <div>
+              <span class="t-dim"> </span
+              ><span class="t-white"
+                >offers cost-efficiency; Claude excels at safety...</span
+              >
+            </div>
+            <div style="margin-top: 8px">
+              <span class="t-green"> Saved to .btw-log/btw-log.md</span>
+            </div>
+            <div style="margin-top: 12px; color: var(--dim); font-size: 12px">
+              # .btw-log/btw-log.md
+            </div>
+            <div style="color: var(--dim); font-size: 12px">---</div>
+            <div style="color: var(--orange2); font-size: 12px">
+              ## [2026-05-05 14:32] do you like multi-model setups?
+            </div>
+            <div style="color: var(--dim2); font-size: 12px">
+              Multi-model setups are architecturally sound...
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">Tradeoffs</h3>
+
+        <table class="compare-table reveal">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Ideal Fix (Save Button)</th>
+              <th>This Plugin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Trigger</td>
+              <td class="good">One keystroke at dismissal</td>
+              <td class="mixed">/btw:save after dismissal</td>
+            </tr>
+            <tr>
+              <td>Answer fidelity</td>
+              <td class="good">Exact — captured live</td>
+              <td class="mixed">Re-generated (may differ)</td>
+            </tr>
+            <tr>
+              <td>User friction</td>
+              <td class="good">Near-zero</td>
+              <td class="mixed">Low — one command</td>
+            </tr>
+            <tr>
+              <td>Requires core change</td>
+              <td class="bad">Yes</td>
+              <td class="good">No</td>
+            </tr>
+            <tr>
+              <td>Ships today</td>
+              <td class="bad">No</td>
+              <td class="good">Yes ✓</td>
+            </tr>
+            <tr>
+              <td>Solves root cause</td>
+              <td class="good">Yes ✓</td>
+              <td class="bad">Workaround</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REFLECTION -->
+    <section id="reflection">
+      <div class="container">
+        <div class="section-num reveal">04 — REFLECTION</div>
+        <h2 class="reveal">What I'd do<br />differently.</h2>
+
+        <div class="reflection-grid reveal">
+          <div class="reflection-card">
+            <div class="reflection-num">01</div>
+            <div>
+              <div class="reflection-title">User research before building</div>
+              <p class="reflection-desc">
+                I identified affected users through inference, not interviews. A
+                quick round with Claude Code power users would either validate
+                the pain or reveal that most people don't actually care — both
+                are useful signals.
+              </p>
+            </div>
+          </div>
+          <div class="reflection-card">
+            <div class="reflection-num">02</div>
+            <div>
+              <div class="reflection-title">Figma mockup before plugin</div>
+              <p class="reflection-desc">
+                I spent more time on plugin implementation than on the design
+                proposal. For a portfolio piece targeting a design role, the
+                overlay Before/After mockup is more persuasive than working
+                Node.js code. The order should have been reversed.
+              </p>
+            </div>
+          </div>
+          <div class="reflection-card">
+            <div class="reflection-num">03</div>
+            <div>
+              <div class="reflection-title">Validate API assumptions early</div>
+              <p class="reflection-desc">
+                I generated an install path (~/.claude/skills/) that turned out
+                to be undocumented and unreliable. A 10-minute technical spike
+                before writing the README would have saved a full iteration
+                cycle.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="reveal">What this project demonstrates</h3>
+
+        <div class="demonstrates reveal">
+          <div class="demo-item">
+            Identifying a UX failure in a live product and articulating it
+            precisely — Nielsen mapping, user segmentation, root cause vs.
+            symptom
+          </div>
+          <div class="demo-item">
+            Operating within real constraints — architectural, API, and UX —
+            rather than designing in a vacuum
+          </div>
+          <div class="demo-item">
+            Shipping a working artifact, not just a proposal
+          </div>
+          <div class="demo-item">
+            Being honest about what doesn't work — including my own process
+            mistakes
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LINKS -->
+    <section id="links" style="border-bottom: none">
+      <div class="container">
+        <div class="section-num reveal">05 — LINKS</div>
+        <h2 class="reveal">See the work.</h2>
+        <p class="reveal">
+          The full plugin, UX proposal, and design files are open source.
+        </p>
+        <div class="links-row reveal">
+          <a
+            href="https://github.com/YANGxPM/btw-saver"
+            class="link-btn link-btn-primary"
+            target="_blank"
+          >
+            ◆ GitHub Repository
+          </a>
+          <a
+            href="./design/UX-Proposal.md"
+            class="link-btn link-btn-secondary"
+            target="_blank"
+          >
+            UX Proposal →
+          </a>
+          <a
+            href="https://www.figma.com/design/PDnwBICEkkPfZHdI4ROzkg"
+            class="link-btn link-btn-secondary"
+            target="_blank"
+          >
+            Figma Mockup →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">Sheng · UX Designer + AI PM · 2026</div>
+          <div class="footer-right">btw-saver · Case Study</div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Scroll reveal
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+              setTimeout(() => entry.target.classList.add("visible"), i * 60);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
 </html>
